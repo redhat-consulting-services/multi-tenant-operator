@@ -3,6 +3,7 @@
 # It should be run by config/default
 resources:
 - bases/tenantconfig.openshift.io_namespacelimitranges.yaml
+- bases/tenantconfig.openshift.io_namespaceresourcequotas.yaml
 # +kubebuilder:scaffold:crdkustomizeresource
 
 patches:

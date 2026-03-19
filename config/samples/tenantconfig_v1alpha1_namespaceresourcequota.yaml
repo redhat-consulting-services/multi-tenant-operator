@@ -1,0 +1,9 @@
+apiVersion: tenantconfig.openshift.io/v1alpha1
+kind: NamespaceResourceQuota
+metadata:
+  labels:
+    app.kubernetes.io/name: multi-tenant-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: namespaceresourcequota-sample
+spec:
+  # TODO(user): Add fields here

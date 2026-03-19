@@ -22,6 +22,9 @@ resources:
 # default, aiding admins in cluster management. Those roles are
 # not used by the multi-tenant-operator itself. You can comment the following lines
 # if you do not want those helpers be installed with your Project.
+- namespaceresourcequota_admin_role.yaml
+- namespaceresourcequota_editor_role.yaml
+- namespaceresourcequota_viewer_role.yaml
 - namespacelimitrange_admin_role.yaml
 - namespacelimitrange_editor_role.yaml
 - namespacelimitrange_viewer_role.yaml
