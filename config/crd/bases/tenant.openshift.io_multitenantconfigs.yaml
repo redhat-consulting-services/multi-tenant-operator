@@ -1,0 +1,250 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.18.0
+  name: multitenantconfigs.tenant.openshift.io
+spec:
+  group: tenant.openshift.io
+  names:
+    kind: MultiTenantConfig
+    listKind: MultiTenantConfigList
+    plural: multitenantconfigs
+    singular: multitenantconfig
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .status.managedNamespaceCount
+      name: Managed Namespaces
+      type: integer
+    - jsonPath: .status.quotaReference
+      name: Quota Reference
+      type: string
+    - jsonPath: .status.limitRangeReference
+      name: LimitRange Reference
+      type: string
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: MultiTenantConfig is the Schema for the multitenantconfigs API.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: MultiTenantConfigSpec defines the desired state of MultiTenantConfig.
+            properties:
+              configSpec:
+                description: |-
+                  ConfigSpec contains additional configuration options for the multi-tenant environment.
+                  These options are applied globally to all tenant namespaces.
+                properties:
+                  enableArgoCDControllerManagement:
+                    type: boolean
+                  enableAuditLogging:
+                    type: boolean
+                  enableCertificateConfigMapCreation:
+                    type: boolean
+                  enableNamePrefix:
+                    type: boolean
+                  enableNameSuffix:
+                    type: boolean
+                  enableUserWorkloadMonitoring:
+                    type: boolean
+                type: object
+              limitRangeReference:
+                description: LimitRangeReference is the name of the NamespaceLimitRange
+                  resource to be applied to tenant namespaces.
+                type: string
+              namespaces:
+                description: Namespaces is a list of namespace specifications for
+                  the multi-tenant environment.
+                items:
+                  properties:
+                    configSpec:
+                      description: |-
+                        ConfigSpec contains additional configuration options for the multi-tenant environment.
+                        These options are applied globally to all tenant namespaces.
+                      properties:
+                        enableArgoCDControllerManagement:
+                          type: boolean
+                        enableAuditLogging:
+                          type: boolean
+                        enableCertificateConfigMapCreation:
+                          type: boolean
+                        enableNamePrefix:
+                          type: boolean
+                        enableNameSuffix:
+                          type: boolean
+                        enableUserWorkloadMonitoring:
+                          type: boolean
+                      type: object
+                    name:
+                      description: |-
+                        Name is the name of the namespace to be created for this tenant.
+                        If EnableNameSuffix or EnableNamePrefix is true, the name of the tenant will be used as a base name for the namespaces.
+                        For example, if the tenant name is "tenant1" and EnableNameSuffix is true, the namespace will be named "tenant1-<name>".
+                      type: string
+                    roleBindings:
+                      description: RoleBindings is a list of RoleBinding specifications
+                        to be applied to all tenant namespaces.
+                      items:
+                        properties:
+                          name:
+                            type: string
+                          roleRef:
+                            description: RoleRef contains information that points
+                              to the role being used
+                            properties:
+                              apiGroup:
+                                description: APIGroup is the group for the resource
+                                  being referenced
+                                type: string
+                              kind:
+                                description: Kind is the type of resource being referenced
+                                type: string
+                              name:
+                                description: Name is the name of resource being referenced
+                                type: string
+                            required:
+                            - apiGroup
+                            - kind
+                            - name
+                            type: object
+                            x-kubernetes-map-type: atomic
+                          subjects:
+                            items:
+                              description: |-
+                                Subject contains a reference to the object or user identities a role binding applies to.  This can either hold a direct API object reference,
+                                or a value for non-objects such as user and group names.
+                              properties:
+                                apiGroup:
+                                  description: |-
+                                    APIGroup holds the API group of the referenced subject.
+                                    Defaults to "" for ServiceAccount subjects.
+                                    Defaults to "rbac.authorization.k8s.io" for User and Group subjects.
+                                  type: string
+                                kind:
+                                  description: |-
+                                    Kind of object being referenced. Values defined by this API group are "User", "Group", and "ServiceAccount".
+                                    If the Authorizer does not recognized the kind value, the Authorizer should report an error.
+                                  type: string
+                                name:
+                                  description: Name of the object being referenced.
+                                  type: string
+                                namespace:
+                                  description: |-
+                                    Namespace of the referenced object.  If the object kind is non-namespace, such as "User" or "Group", and this value is not empty
+                                    the Authorizer should report an error.
+                                  type: string
+                              required:
+                              - kind
+                              - name
+                              type: object
+                              x-kubernetes-map-type: atomic
+                            type: array
+                        type: object
+                      type: array
+                  type: object
+                type: array
+              quotaReference:
+                description: QuotaReference is the name of the NamespaceResourceQuota
+                  resource to be applied to tenant namespaces.
+                type: string
+              roleBindings:
+                description: RoleBindings is a list of RoleBinding specifications
+                  to be applied to all tenant namespaces.
+                items:
+                  properties:
+                    name:
+                      type: string
+                    roleRef:
+                      description: RoleRef contains information that points to the
+                        role being used
+                      properties:
+                        apiGroup:
+                          description: APIGroup is the group for the resource being
+                            referenced
+                          type: string
+                        kind:
+                          description: Kind is the type of resource being referenced
+                          type: string
+                        name:
+                          description: Name is the name of resource being referenced
+                          type: string
+                      required:
+                      - apiGroup
+                      - kind
+                      - name
+                      type: object
+                      x-kubernetes-map-type: atomic
+                    subjects:
+                      items:
+                        description: |-
+                          Subject contains a reference to the object or user identities a role binding applies to.  This can either hold a direct API object reference,
+                          or a value for non-objects such as user and group names.
+                        properties:
+                          apiGroup:
+                            description: |-
+                              APIGroup holds the API group of the referenced subject.
+                              Defaults to "" for ServiceAccount subjects.
+                              Defaults to "rbac.authorization.k8s.io" for User and Group subjects.
+                            type: string
+                          kind:
+                            description: |-
+                              Kind of object being referenced. Values defined by this API group are "User", "Group", and "ServiceAccount".
+                              If the Authorizer does not recognized the kind value, the Authorizer should report an error.
+                            type: string
+                          name:
+                            description: Name of the object being referenced.
+                            type: string
+                          namespace:
+                            description: |-
+                              Namespace of the referenced object.  If the object kind is non-namespace, such as "User" or "Group", and this value is not empty
+                              the Authorizer should report an error.
+                            type: string
+                        required:
+                        - kind
+                        - name
+                        type: object
+                        x-kubernetes-map-type: atomic
+                      type: array
+                  type: object
+                type: array
+            type: object
+          status:
+            description: MultiTenantConfigStatus defines the observed state of MultiTenantConfig.
+            properties:
+              limitRangeReference:
+                description: LimitRangeReference is the name of the NamespaceLimitRange
+                  resource currently applied to tenant namespaces.
+                type: string
+              managedNamespaceCount:
+                description: ManagedNamespaceCount is the number of namespaces currently
+                  managed by this MultiTenantConfig.
+                type: integer
+              quotaReference:
+                description: QuotaReference is the name of the NamespaceResourceQuota
+                  resource currently applied to tenant namespaces.
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

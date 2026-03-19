@@ -5,6 +5,32 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
+  - tenant.openshift.io
+  resources:
+  - multitenantconfigs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - tenant.openshift.io
+  resources:
+  - multitenantconfigs/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - tenant.openshift.io
+  resources:
+  - multitenantconfigs/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
   - tenantconfig.openshift.io
   resources:
   - namespacelimitranges
