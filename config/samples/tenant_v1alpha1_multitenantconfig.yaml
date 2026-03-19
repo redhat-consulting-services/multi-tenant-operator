@@ -1,0 +1,9 @@
+apiVersion: tenant.openshift.io/v1alpha1
+kind: MultiTenantConfig
+metadata:
+  labels:
+    app.kubernetes.io/name: multi-tenant-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: multitenantconfig-sample
+spec:
+  # TODO(user): Add fields here

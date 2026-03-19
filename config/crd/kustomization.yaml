@@ -4,6 +4,7 @@
 resources:
 - bases/tenantconfig.openshift.io_namespacelimitranges.yaml
 - bases/tenantconfig.openshift.io_namespaceresourcequotas.yaml
+- bases/tenant.openshift.io_multitenantconfigs.yaml
 # +kubebuilder:scaffold:crdkustomizeresource
 
 patches:

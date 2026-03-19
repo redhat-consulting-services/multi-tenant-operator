@@ -2,4 +2,5 @@
 resources:
 - tenantconfig_v1alpha1_namespacelimitrange.yaml
 - tenantconfig_v1alpha1_namespaceresourcequota.yaml
+- tenant_v1alpha1_multitenantconfig.yaml
 # +kubebuilder:scaffold:manifestskustomizesamples

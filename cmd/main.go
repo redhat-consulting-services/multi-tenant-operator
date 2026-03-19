@@ -37,7 +37,9 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
+	tenantv1alpha1 "github.com/redhat-consulting-services/multi-tenant-operator/api/tenant/v1alpha1"
 	tenantconfigv1alpha1 "github.com/redhat-consulting-services/multi-tenant-operator/api/tenantconfig/v1alpha1"
+	tenantcontroller "github.com/redhat-consulting-services/multi-tenant-operator/internal/controller/tenant"
 	tenantconfigcontroller "github.com/redhat-consulting-services/multi-tenant-operator/internal/controller/tenantconfig"
 	// +kubebuilder:scaffold:imports
 )
@@ -51,6 +53,7 @@ func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
 	utilruntime.Must(tenantconfigv1alpha1.AddToScheme(scheme))
+	utilruntime.Must(tenantv1alpha1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -214,6 +217,13 @@ func main() {
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "NamespaceResourceQuota")
+		os.Exit(1)
+	}
+	if err := (&tenantcontroller.MultiTenantConfigReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "MultiTenantConfig")
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder
