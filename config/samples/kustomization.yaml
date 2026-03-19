@@ -1,0 +1,4 @@
+## Append samples of your project ##
+resources:
+- tenantconfig_v1alpha1_namespacelimitrange.yaml
+# +kubebuilder:scaffold:manifestskustomizesamples
