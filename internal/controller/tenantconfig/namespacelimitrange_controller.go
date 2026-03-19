@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package controller
+package tenantconfig
 
 import (
 	"context"
@@ -24,7 +24,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
-	tenantconfigv1alpha1 "github.com/redhat-consulting-services/multi-tenant-operator/api/v1alpha1"
+	tenantconfigv1alpha1 "github.com/redhat-consulting-services/multi-tenant-operator/api/tenantconfig/v1alpha1"
 )
 
 // NamespaceLimitRangeReconciler reconciles a NamespaceLimitRange object

@@ -37,8 +37,8 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	tenantconfigv1alpha1 "github.com/redhat-consulting-services/multi-tenant-operator/api/v1alpha1"
-	"github.com/redhat-consulting-services/multi-tenant-operator/internal/controller"
+	tenantconfigv1alpha1 "github.com/redhat-consulting-services/multi-tenant-operator/api/tenantconfig/v1alpha1"
+	tenantconfigcontroller "github.com/redhat-consulting-services/multi-tenant-operator/internal/controller/tenantconfig"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -202,14 +202,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := (&controller.NamespaceLimitRangeReconciler{
+	if err := (&tenantconfigcontroller.NamespaceLimitRangeReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "NamespaceLimitRange")
 		os.Exit(1)
 	}
-	if err := (&controller.NamespaceResourceQuotaReconciler{
+	if err := (&tenantconfigcontroller.NamespaceResourceQuotaReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {

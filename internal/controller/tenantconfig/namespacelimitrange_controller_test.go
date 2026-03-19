@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package controller
+package tenantconfig
 
 import (
 	"context"
@@ -27,10 +27,10 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	tenantconfigv1alpha1 "github.com/redhat-consulting-services/multi-tenant-operator/api/v1alpha1"
+	tenantconfigv1alpha1 "github.com/redhat-consulting-services/multi-tenant-operator/api/tenantconfig/v1alpha1"
 )
 
-var _ = Describe("NamespaceResourceQuota Controller", func() {
+var _ = Describe("NamespaceLimitRange Controller", func() {
 	Context("When reconciling a resource", func() {
 		const resourceName = "test-resource"
 
@@ -40,13 +40,13 @@ var _ = Describe("NamespaceResourceQuota Controller", func() {
 			Name:      resourceName,
 			Namespace: "default", // TODO(user):Modify as needed
 		}
-		namespaceresourcequota := &tenantconfigv1alpha1.NamespaceResourceQuota{}
+		namespacelimitrange := &tenantconfigv1alpha1.NamespaceLimitRange{}
 
 		BeforeEach(func() {
-			By("creating the custom resource for the Kind NamespaceResourceQuota")
-			err := k8sClient.Get(ctx, typeNamespacedName, namespaceresourcequota)
+			By("creating the custom resource for the Kind NamespaceLimitRange")
+			err := k8sClient.Get(ctx, typeNamespacedName, namespacelimitrange)
 			if err != nil && errors.IsNotFound(err) {
-				resource := &tenantconfigv1alpha1.NamespaceResourceQuota{
+				resource := &tenantconfigv1alpha1.NamespaceLimitRange{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      resourceName,
 						Namespace: "default",
@@ -59,16 +59,16 @@ var _ = Describe("NamespaceResourceQuota Controller", func() {
 
 		AfterEach(func() {
 			// TODO(user): Cleanup logic after each test, like removing the resource instance.
-			resource := &tenantconfigv1alpha1.NamespaceResourceQuota{}
+			resource := &tenantconfigv1alpha1.NamespaceLimitRange{}
 			err := k8sClient.Get(ctx, typeNamespacedName, resource)
 			Expect(err).NotTo(HaveOccurred())
 
-			By("Cleanup the specific resource instance NamespaceResourceQuota")
+			By("Cleanup the specific resource instance NamespaceLimitRange")
 			Expect(k8sClient.Delete(ctx, resource)).To(Succeed())
 		})
 		It("should successfully reconcile the resource", func() {
 			By("Reconciling the created resource")
-			controllerReconciler := &NamespaceResourceQuotaReconciler{
+			controllerReconciler := &NamespaceLimitRangeReconciler{
 				Client: k8sClient,
 				Scheme: k8sClient.Scheme(),
 			}
