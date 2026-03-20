@@ -57,10 +57,10 @@ type RoleBindingSpec struct {
 
 type ArgoCDSpec struct {
 	// InstanceName is the name of the Argo CD instance. If not specified, it defaults to "openshift-gitops".
-	//+kubebuilder:default:=openshift-gitops
+	// +kubebuilder:default:=openshift-gitops
 	InstanceName string `json:"instanceName,omitempty"`
 	// InstanceNamespace is the namespace where the Argo CD instance is installed. If not specified, it defaults to "openshift-gitops".
-	//+kubebuilder:default:=openshift-gitops
+	// +kubebuilder:default:=openshift-gitops
 	InstanceNamespace string `json:"instanceNamespace,omitempty"`
 	// Project contains the Argo CD project configuration to be applied to tenant namespaces. If not specified, no Argo CD project will be created.
 	Project ArgoCDProjectSpec `json:"project,omitempty"`
@@ -68,23 +68,23 @@ type ArgoCDSpec struct {
 
 type ArgoCDProjectSpec struct {
 	// Enabled indicates whether the Argo CD project should be created for tenant namespaces. If not specified, it defaults to false.
-	//+kubebuilder:default:=false
+	// +kubebuilder:default:=false
 	Enabled bool `json:"enabled,omitempty"`
 	// Name is the name of the Argo CD project to be created for tenant namespaces. This field is required if Enabled is true.
 	// The name of the Argo CD project will be used as a base name for the project created for each tenant namespace.
 	// For example, if the project name is "tenant-project" and EnableNameSuffix is true, the Argo CD project for a tenant named "tenant1" will be named "tenant1-tenant-project".
 	// If EnableNameSuffix and EnableNamePrefix are both false, the Argo CD project will be named exactly as specified in this field.
-	//+kubebuilder:validation:Required
+	// +kubebuilder:validation:Required
 	Name string `json:"name,omitempty"`
 	// Description is an optional description for the Argo CD project.
-	//+kubebuilder:validation:Optional
+	// +kubebuilder:validation:Optional
 	Description string `json:"description,omitempty"`
 	// SourceRepos is a list of source repositories that the Argo CD project can access. If not specified, the project will have access to all repositories. Default is ["*"].
-	//+kubebuilder:default:=["*"]
+	// +kubebuilder:default:=["*"]
 	SourceRepos []string `json:"sourceRepos,omitempty"`
 	// Destinations is a list of destination clusters that the Argo CD project can deploy to. If not specified, the project will have access to all clusters. Default is ["*"].
 	// Namespaces will be limited to the tenant namespaces created by this operator, but the cluster access will be unrestricted unless specified here.
-	//+kubebuilder:default:=["*"]
+	// +kubebuilder:default:=["*"]
 	Destinations []ArgoCDProjectDestinationSpec `json:"destinations,omitempty"`
 
 	ClusterResourceWhitelist []ArgoCDProjectApiResourceSpec `json:"clusterResourceWhitelist,omitempty"`
