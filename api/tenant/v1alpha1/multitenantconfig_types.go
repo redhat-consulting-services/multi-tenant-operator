@@ -35,7 +35,6 @@ type MultiTenantConfigSpec struct {
 	ConfigSpec ConfigSpec `json:"configSpec,omitempty"`
 	// RoleBindings is a list of RoleBinding specifications to be applied to all tenant namespaces.
 	RoleBindings []RoleBindingSpec `json:"roleBindings,omitempty"`
-
 	// Namespaces is a list of namespace specifications for the multi-tenant environment.
 	Namespaces []NamespaceSpec `json:"namespaces,omitempty"`
 }
