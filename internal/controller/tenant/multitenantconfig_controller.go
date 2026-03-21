@@ -93,6 +93,13 @@ func (r *MultiTenantConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, err
 	}
 
+	// create or update LimitRanges in tenant namespaces based on the MultiTenantConfig spec
+	err = namespaced.CreateOrUpdateLimitRanges(ctx, r.Client, mtc, nlr, namespaces)
+	if err != nil {
+		log.Error(err, "Failed to create or update LimitRanges in tenant namespaces")
+		return ctrl.Result{}, err
+	}
+
 	return ctrl.Result{}, nil
 }
 
