@@ -80,9 +80,16 @@ func (r *MultiTenantConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 
 	// create or update namespaces based on the MultiTenantConfig spec
-	_, err = namespaced.CreateOrUpdateNamespaces(ctx, r.Client, mtc)
+	namespaces, err := namespaced.CreateOrUpdateNamespaces(ctx, r.Client, mtc)
 	if err != nil {
 		log.Error(err, "Failed to create or update namespaces")
+		return ctrl.Result{}, err
+	}
+
+	// create or update ConfigMaps in tenant namespaces based on the MultiTenantConfig spec
+	err = namespaced.CreateOrUpdateConfigMaps(ctx, r.Client, mtc, namespaces)
+	if err != nil {
+		log.Error(err, "Failed to create or update ConfigMaps in tenant namespaces")
 		return ctrl.Result{}, err
 	}
 
