@@ -100,6 +100,13 @@ func (r *MultiTenantConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, err
 	}
 
+	// create or update ResourceQuotas in tenant namespaces based on the MultiTenantConfig spec
+	err = namespaced.CreateOrUpdateResourceQuotas(ctx, r.Client, mtc, nrr, namespaces)
+	if err != nil {
+		log.Error(err, "Failed to create or update ResourceQuotas in tenant namespaces")
+		return ctrl.Result{}, err
+	}
+
 	return ctrl.Result{}, nil
 }
 
