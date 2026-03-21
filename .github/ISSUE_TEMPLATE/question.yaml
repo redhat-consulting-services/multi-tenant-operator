@@ -1,0 +1,33 @@
+name: "❓ Question / Help"
+description: "Ask a question or request guidance about the multi-tenant-operator."
+title: "[QUESTION] "
+labels: ["question"]
+assignees: []
+projects: ["redhat-consulting-services/1"]
+
+body:
+  - type: input
+    id: environment
+    attributes:
+      label: "Environment / Platform"
+      description: "Describe your environment or platform (OpenShift version, cluster type, etc.)"
+      placeholder: "e.g., OpenShift 4.21, ROSA"
+
+  - type: input
+    id: operator
+    attributes:
+      label: "Related Operator (if applicable)"
+      description: "Which operator or catalog entry does your question relate to?"
+      placeholder: "e.g., multi-tenant-operator"
+
+  - type: textarea
+    id: question
+    attributes:
+      label: "Question / Issue"
+      description: "Describe your question or the issue you need help with."
+
+  - type: textarea
+    id: attempts
+    attributes:
+      label: "Steps Taken / Attempts"
+      description: "What have you tried so far?"
