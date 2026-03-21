@@ -1,0 +1,53 @@
+name: "🐛 Bug Report"
+description: "Report a problem with the multi-tenant-operator."
+title: "[BUG]: "
+labels: ["bug"]
+assignees: []
+projects: ["redhat-consulting-services/1"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Before submitting a bug report:**
+        - Check existing issues for duplicates.
+        - Ensure you are using the latest version of the multi-tenant-operator.
+
+  - type: input
+    id: openshift_version
+    attributes:
+      label: "OpenShift Version"
+      description: "Which version of OpenShift are you running?"
+      placeholder: "e.g., 4.21.5"
+
+  - type: input
+    id: operator_version
+    attributes:
+      label: "Operator Version"
+      description: "Which version of the multi-tenant-operator are you using?"
+      placeholder: "e.g., 1.2.3"
+
+  - type: textarea
+    id: description
+    attributes:
+      label: "Bug Description"
+      description: "Describe the bug in detail."
+      placeholder: "Error messages, unexpected behavior, etc."
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: "Steps to Reproduce"
+      description: "List the steps to reproduce the bug."
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: "Expected Behavior"
+      description: "What did you expect to happen?"
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: "Actual Behavior"
+      description: "What actually happened?"
