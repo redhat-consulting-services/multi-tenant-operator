@@ -22,6 +22,9 @@ func TestCreateOrUpdateNamespacesCreatesNamespaces(t *testing.T) {
 	if err := corev1.AddToScheme(scheme); err != nil {
 		t.Fatalf("failed to add corev1 scheme: %v", err)
 	}
+	if err := tenantv1alpha1.AddToScheme(scheme); err != nil {
+		t.Fatalf("failed to add tenantv1alpha1 scheme: %v", err)
+	}
 
 	cl := fake.NewClientBuilder().WithScheme(scheme).Build()
 	mtc := &tenantv1alpha1.MultiTenantConfig{
@@ -75,6 +78,9 @@ func TestCreateOrUpdateNamespacesUpdatesExistingNamespace(t *testing.T) {
 	scheme := runtime.NewScheme()
 	if err := corev1.AddToScheme(scheme); err != nil {
 		t.Fatalf("failed to add corev1 scheme: %v", err)
+	}
+	if err := tenantv1alpha1.AddToScheme(scheme); err != nil {
+		t.Fatalf("failed to add tenantv1alpha1 scheme: %v", err)
 	}
 
 	existing := &corev1.Namespace{
@@ -148,6 +154,9 @@ func TestCreateOrUpdateNamespacesSkipsEmptyNamespaceNames(t *testing.T) {
 	if err := corev1.AddToScheme(scheme); err != nil {
 		t.Fatalf("failed to add corev1 scheme: %v", err)
 	}
+	if err := tenantv1alpha1.AddToScheme(scheme); err != nil {
+		t.Fatalf("failed to add tenantv1alpha1 scheme: %v", err)
+	}
 
 	cl := fake.NewClientBuilder().WithScheme(scheme).Build()
 	mtc := &tenantv1alpha1.MultiTenantConfig{
@@ -176,6 +185,9 @@ func TestCreateOrUpdateNamespacesAddsPrefixWhenEnabled(t *testing.T) {
 	if err := corev1.AddToScheme(scheme); err != nil {
 		t.Fatalf("failed to add corev1 scheme: %v", err)
 	}
+	if err := tenantv1alpha1.AddToScheme(scheme); err != nil {
+		t.Fatalf("failed to add tenantv1alpha1 scheme: %v", err)
+	}
 
 	cl := fake.NewClientBuilder().WithScheme(scheme).Build()
 	mtc := &tenantv1alpha1.MultiTenantConfig{
@@ -200,6 +212,9 @@ func TestCreateOrUpdateNamespacesAddsSuffixWhenEnabled(t *testing.T) {
 	scheme := runtime.NewScheme()
 	if err := corev1.AddToScheme(scheme); err != nil {
 		t.Fatalf("failed to add corev1 scheme: %v", err)
+	}
+	if err := tenantv1alpha1.AddToScheme(scheme); err != nil {
+		t.Fatalf("failed to add tenantv1alpha1 scheme: %v", err)
 	}
 
 	cl := fake.NewClientBuilder().WithScheme(scheme).Build()
