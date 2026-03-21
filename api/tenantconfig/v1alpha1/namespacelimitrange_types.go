@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -25,21 +26,17 @@ import (
 
 // NamespaceLimitRangeSpec defines the desired state of NamespaceLimitRange.
 type NamespaceLimitRangeSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
-	// Foo is an example field of NamespaceLimitRange. Edit namespacelimitrange_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	Limits []corev1.LimitRangeItem `json:"limits,omitempty"`
 }
 
 // NamespaceLimitRangeStatus defines the observed state of NamespaceLimitRange.
 type NamespaceLimitRangeStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	LimitItems int32 `json:"limitItems,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="LimitItems",type="integer",JSONPath=".status.limitItems"
 
 // NamespaceLimitRange is the Schema for the namespacelimitranges API.
 type NamespaceLimitRange struct {

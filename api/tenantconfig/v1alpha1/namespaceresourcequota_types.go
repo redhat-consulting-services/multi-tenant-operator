@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -25,21 +26,17 @@ import (
 
 // NamespaceResourceQuotaSpec defines the desired state of NamespaceResourceQuota.
 type NamespaceResourceQuotaSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
-	// Foo is an example field of NamespaceResourceQuota. Edit namespaceresourcequota_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	corev1.ResourceQuotaSpec `json:",inline"`
 }
 
 // NamespaceResourceQuotaStatus defines the observed state of NamespaceResourceQuota.
 type NamespaceResourceQuotaStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	HardItems int32 `json:"hardItems,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="HardItems",type="integer",JSONPath=".status.hardItems"
 
 // NamespaceResourceQuota is the Schema for the namespaceresourcequotas API.
 type NamespaceResourceQuota struct {
