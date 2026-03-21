@@ -66,9 +66,8 @@ func CreateOrUpdateNamespaces(ctx context.Context, client client.Client, mtc *te
 			}
 
 			// owner reference
-			if mtc.UID != "" {
-				ownerReference := metav1.NewControllerRef(mtc, mtc.GroupVersionKind())
-				namespace.OwnerReferences = upsertOwnerReference(namespace.OwnerReferences, *ownerReference)
+			if err := controllerutil.SetControllerReference(mtc, namespace, client.Scheme()); err != nil {
+				return err
 			}
 			return nil
 		})
@@ -92,18 +91,4 @@ func getNamespaceName(namespaceName string, tenantName string, globalConfig tena
 	}
 
 	return namespaceName
-}
-
-func upsertOwnerReference(ownerReferences []metav1.OwnerReference, ownerReference metav1.OwnerReference) []metav1.OwnerReference {
-	for i := range ownerReferences {
-		isSameResource := ownerReferences[i].APIVersion == ownerReference.APIVersion &&
-			ownerReferences[i].Kind == ownerReference.Kind &&
-			ownerReferences[i].Name == ownerReference.Name
-		if isSameResource {
-			ownerReferences[i] = ownerReference
-			return ownerReferences
-		}
-	}
-
-	return append(ownerReferences, ownerReference)
 }
