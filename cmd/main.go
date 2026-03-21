@@ -40,7 +40,6 @@ import (
 	tenantv1alpha1 "github.com/redhat-consulting-services/multi-tenant-operator/api/tenant/v1alpha1"
 	tenantconfigv1alpha1 "github.com/redhat-consulting-services/multi-tenant-operator/api/tenantconfig/v1alpha1"
 	tenantcontroller "github.com/redhat-consulting-services/multi-tenant-operator/internal/controller/tenant"
-	tenantconfigcontroller "github.com/redhat-consulting-services/multi-tenant-operator/internal/controller/tenantconfig"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -205,20 +204,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := (&tenantconfigcontroller.NamespaceLimitRangeReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "NamespaceLimitRange")
-		os.Exit(1)
-	}
-	if err := (&tenantconfigcontroller.NamespaceResourceQuotaReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "NamespaceResourceQuota")
-		os.Exit(1)
-	}
 	if err := (&tenantcontroller.MultiTenantConfigReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
