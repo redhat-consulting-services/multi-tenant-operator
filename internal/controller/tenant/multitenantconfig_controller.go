@@ -39,13 +39,15 @@ type MultiTenantConfigReconciler struct {
 // +kubebuilder:rbac:groups=tenant.openshift.io,resources=multitenantconfigs/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=tenant.openshift.io,resources=multitenantconfigs/finalizers,verbs=update
 
-// +kubebuilder:rbac:groups=tenant.openshift.io,resources=namespacelimitranges,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=tenant.openshift.io,resources=namespacelimitranges/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=tenant.openshift.io,resources=namespacelimitranges/finalizers,verbs=update
+// +kubebuilder:rbac:groups=tenantconfig.openshift.io,resources=namespacelimitranges,verbs=get;list;watch
+// +kubebuilder:rbac:groups=tenantconfig.openshift.io,resources=namespaceresourcequotalists,verbs=get;list;watch
 
-// +kubebuilder:rbac:groups=tenant.openshift.io,resources=namespaceresourcequotalists,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=tenant.openshift.io,resources=namespaceresourcequotalists/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=tenant.openshift.io,resources=namespaceresourcequotalists/finalizers,verbs=update
+// +kubebuilder:rbac:groups=core,resources=namespaces,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=core,resources=configmaps,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=core,resources=limitranges,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=core,resources=resourcequotas,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=rolebindings,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=argoproj.io,resources=appprojects,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
