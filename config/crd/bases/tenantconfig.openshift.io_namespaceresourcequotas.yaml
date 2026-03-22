@@ -11,6 +11,8 @@ spec:
     kind: NamespaceResourceQuota
     listKind: NamespaceResourceQuotaList
     plural: namespaceresourcequotas
+    shortNames:
+    - nrq
     singular: namespaceresourcequota
   scope: Namespaced
   versions:

@@ -11,6 +11,8 @@ spec:
     kind: MultiTenantConfig
     listKind: MultiTenantConfigList
     plural: multitenantconfigs
+    shortNames:
+    - mtc
     singular: multitenantconfig
   scope: Namespaced
   versions:
