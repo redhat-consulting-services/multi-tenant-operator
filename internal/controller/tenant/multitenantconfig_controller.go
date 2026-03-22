@@ -97,9 +97,9 @@ func (r *MultiTenantConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		}
 	}
 
-	if mtc.Spec.QuotaReference != "" {
+	if mtc.Spec.ResourceQuotaReference != "" {
 		nrr := &tenantconfigv1alpha1.NamespaceResourceQuota{}
-		err = r.Client.Get(ctx, client.ObjectKey{Name: mtc.Spec.QuotaReference}, nrr)
+		err = r.Client.Get(ctx, client.ObjectKey{Name: mtc.Spec.ResourceQuotaReference}, nrr)
 		if err != nil {
 			log.Error(err, "Failed to get NamespaceResourceQuota")
 			return ctrl.Result{}, err
@@ -128,7 +128,7 @@ func (r *MultiTenantConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 
 	mtc.Status.LimitRangeReference = mtc.Spec.LimitRangeReference
-	mtc.Status.QuotaReference = mtc.Spec.QuotaReference
+	mtc.Status.QuotaReference = mtc.Spec.ResourceQuotaReference
 	mtc.Status.ManagedNamespaceCount = len(namespaces)
 	err = r.Client.Status().Update(ctx, mtc)
 	if err != nil {

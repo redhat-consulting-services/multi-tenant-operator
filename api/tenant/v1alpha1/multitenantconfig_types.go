@@ -29,8 +29,8 @@ import (
 type MultiTenantConfigSpec struct {
 	// ArgoCD contains the configuration for Argo CD integration in the multi-tenant environment.
 	ArgoCD *ArgoCDSpec `json:"argocd,omitempty"`
-	// QuotaReference is the name of the NamespaceResourceQuota resource to be applied to tenant namespaces.
-	QuotaReference string `json:"quotaReference,omitempty"`
+	// ResourceQuotaReference is the name of the NamespaceResourceQuota resource to be applied to tenant namespaces.
+	ResourceQuotaReference string `json:"resourceQuotaReference,omitempty"`
 	// LimitRangeReference is the name of the NamespaceLimitRange resource to be applied to tenant namespaces.
 	LimitRangeReference string `json:"limitRangeReference,omitempty"`
 	// ConfigSpec contains additional configuration options for the multi-tenant environment.

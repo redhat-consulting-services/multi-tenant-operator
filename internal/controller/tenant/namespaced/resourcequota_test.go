@@ -62,16 +62,16 @@ func TestCreateOrUpdateResourceQuotasCreatesPerNamespace(t *testing.T) {
 			Name: "tenant-b",
 			UID:  types.UID("57f7e17f-572e-49f0-802f-574dc2f6e2f2"),
 		},
-		Spec: tenantv1alpha1.MultiTenantConfigSpec{QuotaReference: "default-quota"},
+		Spec: tenantv1alpha1.MultiTenantConfigSpec{ResourceQuotaReference: "default-quota"},
 	}
 	rqSpec := &tenantconfigv1alpha1.NamespaceResourceQuota{
 		Spec: tenantconfigv1alpha1.NamespaceResourceQuotaSpec{
 			ResourceQuotaSpec: corev1.ResourceQuotaSpec{
 				Hard: corev1.ResourceList{
-					corev1.ResourceCPU:              resourceMustParse(t, "2"),
-					corev1.ResourceMemory:           resourceMustParse(t, "4Gi"),
-					corev1.ResourcePods:             resourceMustParse(t, "20"),
-					corev1.ResourceRequestsStorage:  resourceMustParse(t, "10Gi"),
+					corev1.ResourceCPU:             resourceMustParse(t, "2"),
+					corev1.ResourceMemory:          resourceMustParse(t, "4Gi"),
+					corev1.ResourcePods:            resourceMustParse(t, "20"),
+					corev1.ResourceRequestsStorage: resourceMustParse(t, "10Gi"),
 				},
 			},
 		},
@@ -153,7 +153,7 @@ func TestCreateOrUpdateResourceQuotasUpdatesExistingResourceQuota(t *testing.T) 
 			Name: "tenant-c",
 			UID:  types.UID("5cb6afce-160e-47f8-b8c0-9120353647f4"),
 		},
-		Spec: tenantv1alpha1.MultiTenantConfigSpec{QuotaReference: "tenant-quota"},
+		Spec: tenantv1alpha1.MultiTenantConfigSpec{ResourceQuotaReference: "tenant-quota"},
 	}
 	rqSpec := &tenantconfigv1alpha1.NamespaceResourceQuota{
 		Spec: tenantconfigv1alpha1.NamespaceResourceQuotaSpec{

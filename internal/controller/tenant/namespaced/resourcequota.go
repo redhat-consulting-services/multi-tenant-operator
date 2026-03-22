@@ -14,7 +14,7 @@ import (
 
 // CreateOrUpdateResourceQuotas creates or updates ResourceQuotas in the specified namespaces based on the provided MultiTenantConfig and NamespaceResourceQuota spec. It returns an error if any operation fails.
 func CreateOrUpdateResourceQuotas(ctx context.Context, client client.Client, mtc *tenantv1alpha1.MultiTenantConfig, rqSpec *tenantconfigv1alpha1.NamespaceResourceQuota, namespaces []string) error {
-	if mtc.Spec.QuotaReference == "" {
+	if mtc.Spec.ResourceQuotaReference == "" {
 		return nil
 	}
 	for _, ns := range namespaces {
