@@ -19,7 +19,7 @@ func CreateOrUpdateNamespaces(ctx context.Context, client client.Client, mtc *te
 			continue
 		}
 
-		namespaceName := getNamespaceName(ns.Name, mtc.Name, mtc.Spec.ConfigSpec, ns.ConfigSpec)
+		namespaceName := getGeneratedNamespaceName(*mtc, ns)
 		namespace := &corev1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{Name: namespaceName},
 		}
@@ -69,19 +69,4 @@ func CreateOrUpdateNamespaces(ctx context.Context, client client.Client, mtc *te
 		}
 	}
 	return namespaceNames, nil
-}
-
-func getNamespaceName(namespaceName string, tenantName string, globalConfig tenantv1alpha1.ConfigSpec, namespaceConfig tenantv1alpha1.ConfigSpec) string {
-	prefixEnabled := globalConfig.EnableNamePrefix || namespaceConfig.EnableNamePrefix
-	suffixEnabled := globalConfig.EnableNameSuffix || namespaceConfig.EnableNameSuffix
-
-	if prefixEnabled && tenantName != "" {
-		namespaceName = tenantName + "-" + namespaceName
-	}
-
-	if suffixEnabled && tenantName != "" {
-		namespaceName = namespaceName + "-" + tenantName
-	}
-
-	return namespaceName
 }

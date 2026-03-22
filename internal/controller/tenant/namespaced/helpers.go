@@ -11,14 +11,24 @@ const (
 	multiTenantConfigNameLabelKey      = "tenant.openshift.io/multi-tenant-config"
 )
 
-// getGeneratedName generates a name for a resource based on the provided base name, tenant name, and configuration options for name prefix/suffix. It returns the generated name as a string.
-func getGeneratedName(mtc tenantv1alpha1.MultiTenantConfig, name string) string {
+// getGeneratedNamespaceName generates a name for a resource based on the provided base name, tenant name, and configuration options for name prefix/suffix. It returns the generated name as a string.
+func getGeneratedNamespaceName(mtc tenantv1alpha1.MultiTenantConfig, ns tenantv1alpha1.NamespaceSpec) string {
+	config := ns.GetMergedConfigSpec(mtc.Spec.ConfigSpec)
+	if config.EnableNamePrefix {
+		return mtc.GetName() + "-" + ns.Name
+	}
+	if config.EnableNameSuffix {
+		return ns.Name + "-" + mtc.GetName()
+	}
+	return ns.Name
+}
+
+func getGeneratedName(mtc tenantv1alpha1.MultiTenantConfig, baseName string) string {
 	if mtc.Spec.ConfigSpec.EnableNamePrefix {
-		return mtc.Name + "-" + name
+		return mtc.GetName() + "-" + baseName
 	}
 	if mtc.Spec.ConfigSpec.EnableNameSuffix {
-		return name + "-" + mtc.Name
+		return baseName + "-" + mtc.GetName()
 	}
-
-	return name
+	return baseName
 }

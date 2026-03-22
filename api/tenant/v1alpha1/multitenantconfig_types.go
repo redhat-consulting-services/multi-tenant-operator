@@ -43,12 +43,28 @@ type MultiTenantConfigSpec struct {
 }
 
 type ConfigSpec struct {
-	EnableAuditLogging                 bool `json:"enableAuditLogging,omitempty"`
-	EnableUserWorkloadMonitoring       bool `json:"enableUserWorkloadMonitoring,omitempty"`
+	// EnableAuditLogging indicates whether OVN audit logging should be enabled for tenant namespaces. If not specified, it defaults to false.
+	// When enabled, the operator will annotate the Namespace for each tenant with the necessary configuration to enable OVN audit logging.
+	// +kubebuilder:default:=false
+	EnableAuditLogging bool `json:"enableAuditLogging,omitempty"`
+	// EnableUserWorkloadMonitoring indicates whether user workload monitoring should be enabled for tenant namespaces. If not specified, it defaults to false.
+	// When enabled, the operator will label the Namespace for each tenant with the necessary configuration to enable user workload monitoring.
+	// +kubebuilder:default:=false
+	EnableUserWorkloadMonitoring bool `json:"enableUserWorkloadMonitoring,omitempty"`
+	// EnableCertificateConfigMapCreation indicates whether the operator should create a ConfigMap containing the OpenShift TLS certificate defined inside the proxy resource for each tenant namespaces.
+	// If not specified, it defaults to false.
+	// +kubebuilder:default:=false
 	EnableCertificateConfigMapCreation bool `json:"enableCertificateConfigMapCreation,omitempty"`
-	EnableArgoCDControllerManagement   bool `json:"enableArgoCDControllerManagement,omitempty"`
-	EnableNameSuffix                   bool `json:"enableNameSuffix,omitempty"`
-	EnableNamePrefix                   bool `json:"enableNamePrefix,omitempty"`
+	// EnableArgoCDControllerManagement indicates whether the ArgoCD operator receives management permissions for the tenant namespaces.
+	// If not specified, it defaults to false.
+	// +kubebuilder:default:=false
+	EnableArgoCDControllerManagement bool `json:"enableArgoCDControllerManagement,omitempty"`
+	// EnableNameSuffix indicates whether the operator should append a suffix to resource names for tenant namespaces. If not specified, it defaults to false.
+	// +kubebuilder:default:=false
+	EnableNameSuffix bool `json:"enableNameSuffix,omitempty"`
+	// EnableNamePrefix indicates whether the operator should prepend a prefix to resource names for tenant namespaces. If not specified, it defaults to false.
+	// +kubebuilder:default:=false
+	EnableNamePrefix bool `json:"enableNamePrefix,omitempty"`
 }
 
 type RoleBindingSpec struct {
@@ -90,9 +106,45 @@ type NamespaceSpec struct {
 	Name string `json:"name,omitempty"`
 	// ConfigSpec contains additional configuration options for the multi-tenant environment.
 	// These options are applied globally to all tenant namespaces.
-	ConfigSpec ConfigSpec `json:"configSpec,omitempty"`
+	// If a field is set to true in both the NamespaceSpec.ConfigSpec and the MultiTenantConfigSpec.ConfigSpec, the value from NamespaceSpec.ConfigSpec takes precedence for that namespace.
+	// This allows for per-namespace overrides of the global configuration options defined in MultiTenantConfigSpec.ConfigSpec.
+	// For example, if EnableAuditLogging is set to true in MultiTenantConfigSpec.ConfigSpec and set to false in a specific NamespaceSpec.ConfigSpec, audit logging will be enabled for all namespaces except the one with the override, where it will be disabled.
+	// If a field is set to true in NamespaceSpec.ConfigSpec but not set or set to false in MultiTenantConfigSpec.ConfigSpec, the value from NamespaceSpec.ConfigSpec will enable that feature for the specific namespace, while it remains disabled for namespaces that do not have it enabled in their NamespaceSpec.ConfigSpec.
+	// This design allows for flexible configuration of tenant namespaces, enabling global defaults while also supporting specific overrides on a per-namespace basis.
+	// +kubebuilder:validation:Optional
+	ConfigSpec *ConfigSpec `json:"configSpec,omitempty"`
 	// RoleBindings is a list of RoleBinding specifications to be applied to all tenant namespaces.
 	RoleBindings []RoleBindingSpec `json:"roleBindings,omitempty"`
+}
+
+// GetMergedConfigSpec returns a ConfigSpec that merges the global configuration from the MultiTenantConfigSpec with any overrides specified in the NamespaceSpec.
+// The merging logic is as follows:
+// - If a field is set to true in both the NamespaceSpec.ConfigSpec and the MultiTenantConfigSpec.ConfigSpec, the value from NamespaceSpec.ConfigSpec takes precedence for that namespace.
+// - If a field is set to true in NamespaceSpec.ConfigSpec but not set or set to false in MultiTenantConfigSpec.ConfigSpec, the value from NamespaceSpec.ConfigSpec will enable that feature for the specific namespace, while it remains disabled for namespaces that do not have it enabled in their NamespaceSpec.ConfigSpec.
+// This design allows for flexible configuration of tenant namespaces, enabling global defaults while also supporting specific overrides on a per-namespace basis.
+func (ns *NamespaceSpec) GetMergedConfigSpec(global ConfigSpec) ConfigSpec {
+	merged := global
+	if ns.ConfigSpec != nil {
+		if ns.ConfigSpec.EnableAuditLogging != global.EnableAuditLogging {
+			merged.EnableAuditLogging = ns.ConfigSpec.EnableAuditLogging
+		}
+		if ns.ConfigSpec.EnableUserWorkloadMonitoring != global.EnableUserWorkloadMonitoring {
+			merged.EnableUserWorkloadMonitoring = ns.ConfigSpec.EnableUserWorkloadMonitoring
+		}
+		if ns.ConfigSpec.EnableCertificateConfigMapCreation != global.EnableCertificateConfigMapCreation {
+			merged.EnableCertificateConfigMapCreation = ns.ConfigSpec.EnableCertificateConfigMapCreation
+		}
+		if ns.ConfigSpec.EnableArgoCDControllerManagement != global.EnableArgoCDControllerManagement {
+			merged.EnableArgoCDControllerManagement = ns.ConfigSpec.EnableArgoCDControllerManagement
+		}
+		if ns.ConfigSpec.EnableNameSuffix != global.EnableNameSuffix {
+			merged.EnableNameSuffix = ns.ConfigSpec.EnableNameSuffix
+		}
+		if ns.ConfigSpec.EnableNamePrefix != global.EnableNamePrefix {
+			merged.EnableNamePrefix = ns.ConfigSpec.EnableNamePrefix
+		}
+	}
+	return merged
 }
 
 // MultiTenantConfigStatus defines the observed state of MultiTenantConfig.
