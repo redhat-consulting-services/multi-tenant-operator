@@ -127,6 +127,15 @@ func (r *MultiTenantConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, err
 	}
 
+	mtc.Status.LimitRangeReference = mtc.Spec.LimitRangeReference
+	mtc.Status.QuotaReference = mtc.Spec.QuotaReference
+	mtc.Status.ManagedNamespaceCount = len(namespaces)
+	err = r.Client.Status().Update(ctx, mtc)
+	if err != nil {
+		log.Error(err, "Failed to update MultiTenantConfig status")
+		return ctrl.Result{}, err
+	}
+
 	return ctrl.Result{}, nil
 }
 
