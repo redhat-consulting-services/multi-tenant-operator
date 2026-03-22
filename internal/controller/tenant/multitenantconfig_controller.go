@@ -107,6 +107,13 @@ func (r *MultiTenantConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, err
 	}
 
+	// create or update RoleBindings in tenant namespaces based on the MultiTenantConfig spec
+	err = namespaced.CreateOrUpdateRoleBindings(ctx, r.Client, mtc, namespaces)
+	if err != nil {
+		log.Error(err, "Failed to create or update RoleBindings in tenant namespaces")
+		return ctrl.Result{}, err
+	}
+
 	return ctrl.Result{}, nil
 }
 
