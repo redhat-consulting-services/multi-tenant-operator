@@ -3,8 +3,10 @@ module github.com/redhat-consulting-services/multi-tenant-operator
 go 1.25.5
 
 require (
+	github.com/argoproj/argo-cd/v3 v3.3.4
 	github.com/onsi/ginkgo/v2 v2.22.0
 	github.com/onsi/gomega v1.36.1
+	k8s.io/api v0.34.0
 	k8s.io/apimachinery v0.34.0
 	k8s.io/client-go v0.34.0
 	sigs.k8s.io/controller-runtime v0.21.0
@@ -25,7 +27,6 @@ require (
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/ProtonMail/go-crypto v1.1.6 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.0 // indirect
-	github.com/argoproj/argo-cd/v3 v3.3.4 // indirect
 	github.com/argoproj/gitops-engine v0.7.1-0.20250908182407-97ad5b59a627 // indirect
 	github.com/argoproj/pkg v0.13.6 // indirect
 	github.com/argoproj/pkg/v2 v2.0.1 // indirect
@@ -36,7 +37,6 @@ require (
 	github.com/bradleyfalzon/ghinstallation/v2 v2.17.0 // indirect
 	github.com/casbin/casbin/v2 v2.135.0 // indirect
 	github.com/casbin/govaluate v1.10.0 // indirect
-	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/chai2010/gettext-go v1.0.3 // indirect
@@ -164,7 +164,6 @@ require (
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/api v0.34.0 // indirect
 	k8s.io/apiextensions-apiserver v0.34.0 // indirect
 	k8s.io/apiserver v0.34.0 // indirect
 	k8s.io/cli-runtime v0.34.0 // indirect
@@ -183,7 +182,6 @@ require (
 	sigs.k8s.io/kustomize/api v0.20.1 // indirect
 	sigs.k8s.io/kustomize/kyaml v0.20.1 // indirect
 	sigs.k8s.io/randfill v1.0.0 // indirect
-	sigs.k8s.io/structured-merge-diff/v4 v4.6.0 // indirect
 	sigs.k8s.io/structured-merge-diff/v6 v6.3.1-0.20251003215857-446d8398e19c // indirect
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
