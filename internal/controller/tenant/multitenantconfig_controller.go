@@ -65,20 +65,6 @@ func (r *MultiTenantConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, err
 	}
 
-	nlr := &tenantconfigv1alpha1.NamespaceLimitRange{}
-	err = r.Client.Get(ctx, client.ObjectKey{Name: mtc.Spec.LimitRangeReference}, nlr)
-	if err != nil {
-		log.Error(err, "Failed to get NamespaceLimitRange")
-		return ctrl.Result{}, err
-	}
-
-	nrr := &tenantconfigv1alpha1.NamespaceResourceQuota{}
-	err = r.Client.Get(ctx, client.ObjectKey{Name: mtc.Spec.QuotaReference}, nrr)
-	if err != nil {
-		log.Error(err, "Failed to get NamespaceResourceQuota")
-		return ctrl.Result{}, err
-	}
-
 	// create or update namespaces based on the MultiTenantConfig spec
 	namespaces, err := namespaced.CreateOrUpdateNamespaces(ctx, r.Client, mtc)
 	if err != nil {
@@ -93,18 +79,36 @@ func (r *MultiTenantConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, err
 	}
 
-	// create or update LimitRanges in tenant namespaces based on the MultiTenantConfig spec
-	err = namespaced.CreateOrUpdateLimitRanges(ctx, r.Client, mtc, nlr, namespaces)
-	if err != nil {
-		log.Error(err, "Failed to create or update LimitRanges in tenant namespaces")
-		return ctrl.Result{}, err
+	if mtc.Spec.LimitRangeReference != "" {
+		nlr := &tenantconfigv1alpha1.NamespaceLimitRange{}
+		err = r.Client.Get(ctx, client.ObjectKey{Name: mtc.Spec.LimitRangeReference}, nlr)
+		if err != nil {
+			log.Error(err, "Failed to get NamespaceLimitRange")
+			return ctrl.Result{}, err
+		}
+
+		// create or update LimitRanges in tenant namespaces based on the MultiTenantConfig spec
+		err = namespaced.CreateOrUpdateLimitRanges(ctx, r.Client, mtc, nlr, namespaces)
+		if err != nil {
+			log.Error(err, "Failed to create or update LimitRanges in tenant namespaces")
+			return ctrl.Result{}, err
+		}
 	}
 
-	// create or update ResourceQuotas in tenant namespaces based on the MultiTenantConfig spec
-	err = namespaced.CreateOrUpdateResourceQuotas(ctx, r.Client, mtc, nrr, namespaces)
-	if err != nil {
-		log.Error(err, "Failed to create or update ResourceQuotas in tenant namespaces")
-		return ctrl.Result{}, err
+	if mtc.Spec.QuotaReference != "" {
+		nrr := &tenantconfigv1alpha1.NamespaceResourceQuota{}
+		err = r.Client.Get(ctx, client.ObjectKey{Name: mtc.Spec.QuotaReference}, nrr)
+		if err != nil {
+			log.Error(err, "Failed to get NamespaceResourceQuota")
+			return ctrl.Result{}, err
+		}
+
+		// create or update ResourceQuotas in tenant namespaces based on the MultiTenantConfig spec
+		err = namespaced.CreateOrUpdateResourceQuotas(ctx, r.Client, mtc, nrr, namespaces)
+		if err != nil {
+			log.Error(err, "Failed to create or update ResourceQuotas in tenant namespaces")
+			return ctrl.Result{}, err
+		}
 	}
 
 	// create or update RoleBindings in tenant namespaces based on the MultiTenantConfig spec
