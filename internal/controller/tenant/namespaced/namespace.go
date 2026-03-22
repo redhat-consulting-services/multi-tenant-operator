@@ -12,13 +12,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-const (
-	managedNamespacetenantNameLabelKey = "tenant.openshift.io/tenant-name"
-	managedByLabelKey                  = "app.kubernetes.io/managed-by"
-	managedByLabelValue                = "multi-tenant-operator"
-	multiTenantConfigNameLabelKey      = "tenant.openshift.io/multitenantconfig"
-)
-
 func CreateOrUpdateNamespaces(ctx context.Context, client client.Client, mtc *tenantv1alpha1.MultiTenantConfig) ([]string, error) {
 	var namespaceNames []string
 	for _, ns := range mtc.Spec.Namespaces {

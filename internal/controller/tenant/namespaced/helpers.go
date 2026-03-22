@@ -4,6 +4,13 @@ import (
 	tenantv1alpha1 "github.com/redhat-consulting-services/multi-tenant-operator/api/tenant/v1alpha1"
 )
 
+const (
+	managedNamespacetenantNameLabelKey = "tenant.openshift.io/name"
+	managedByLabelKey                  = "app.kubernetes.io/managed-by"
+	managedByLabelValue                = "multi-tenant-operator"
+	multiTenantConfigNameLabelKey      = "tenant.openshift.io/multi-tenant-config"
+)
+
 // getGeneratedName generates a name for a resource based on the provided base name, tenant name, and configuration options for name prefix/suffix. It returns the generated name as a string.
 func getGeneratedName(mtc tenantv1alpha1.MultiTenantConfig, name string) string {
 	if mtc.Spec.ConfigSpec.EnableNamePrefix {
