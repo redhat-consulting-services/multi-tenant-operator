@@ -387,21 +387,47 @@ spec:
                   These options are applied globally to all tenant namespaces.
                 properties:
                   enableArgoCDControllerManagement:
+                    default: false
+                    description: |-
+                      EnableArgoCDControllerManagement indicates whether the ArgoCD operator receives management permissions for the tenant namespaces.
+                      If not specified, it defaults to false.
                     type: boolean
                   enableAuditLogging:
+                    default: false
+                    description: |-
+                      EnableAuditLogging indicates whether OVN audit logging should be enabled for tenant namespaces. If not specified, it defaults to false.
+                      When enabled, the operator will annotate the Namespace for each tenant with the necessary configuration to enable OVN audit logging.
                     type: boolean
                   enableCertificateConfigMapCreation:
+                    default: false
+                    description: |-
+                      EnableCertificateConfigMapCreation indicates whether the operator should create a ConfigMap containing the OpenShift TLS certificate defined inside the proxy resource for each tenant namespaces.
+                      If not specified, it defaults to false.
                     type: boolean
                   enableNamePrefix:
+                    default: false
+                    description: EnableNamePrefix indicates whether the operator should
+                      prepend a prefix to resource names for tenant namespaces. If
+                      not specified, it defaults to false.
                     type: boolean
                   enableNameSuffix:
+                    default: false
+                    description: EnableNameSuffix indicates whether the operator should
+                      append a suffix to resource names for tenant namespaces. If
+                      not specified, it defaults to false.
                     type: boolean
                   enableUserWorkloadMonitoring:
+                    default: false
+                    description: |-
+                      EnableUserWorkloadMonitoring indicates whether user workload monitoring should be enabled for tenant namespaces. If not specified, it defaults to false.
+                      When enabled, the operator will label the Namespace for each tenant with the necessary configuration to enable user workload monitoring.
                     type: boolean
                 type: object
               limitRangeReference:
-                description: LimitRangeReference is the name of the NamespaceLimitRange
-                  resource to be applied to tenant namespaces.
+                description: |-
+                  LimitRangeReference is the name of the NamespaceLimitRange resource to be applied to tenant namespaces.
+                  This should reference a NamespaceLimitRange resource.
+                  If specified, the operator will apply the referenced NamespaceLimitRange to all tenant namespaces.
                 type: string
               namespaces:
                 description: Namespaces is a list of namespace specifications for
@@ -412,18 +438,47 @@ spec:
                       description: |-
                         ConfigSpec contains additional configuration options for the multi-tenant environment.
                         These options are applied globally to all tenant namespaces.
+                        If a field is set to true in both the NamespaceSpec.ConfigSpec and the MultiTenantConfigSpec.ConfigSpec, the value from NamespaceSpec.ConfigSpec takes precedence for that namespace.
+                        This allows for per-namespace overrides of the global configuration options defined in MultiTenantConfigSpec.ConfigSpec.
+                        For example, if EnableAuditLogging is set to true in MultiTenantConfigSpec.ConfigSpec and set to false in a specific NamespaceSpec.ConfigSpec, audit logging will be enabled for all namespaces except the one with the override, where it will be disabled.
+                        If a field is set to true in NamespaceSpec.ConfigSpec but not set or set to false in MultiTenantConfigSpec.ConfigSpec, the value from NamespaceSpec.ConfigSpec will enable that feature for the specific namespace, while it remains disabled for namespaces that do not have it enabled in their NamespaceSpec.ConfigSpec.
+                        This design allows for flexible configuration of tenant namespaces, enabling global defaults while also supporting specific overrides on a per-namespace basis.
                       properties:
                         enableArgoCDControllerManagement:
+                          default: false
+                          description: |-
+                            EnableArgoCDControllerManagement indicates whether the ArgoCD operator receives management permissions for the tenant namespaces.
+                            If not specified, it defaults to false.
                           type: boolean
                         enableAuditLogging:
+                          default: false
+                          description: |-
+                            EnableAuditLogging indicates whether OVN audit logging should be enabled for tenant namespaces. If not specified, it defaults to false.
+                            When enabled, the operator will annotate the Namespace for each tenant with the necessary configuration to enable OVN audit logging.
                           type: boolean
                         enableCertificateConfigMapCreation:
+                          default: false
+                          description: |-
+                            EnableCertificateConfigMapCreation indicates whether the operator should create a ConfigMap containing the OpenShift TLS certificate defined inside the proxy resource for each tenant namespaces.
+                            If not specified, it defaults to false.
                           type: boolean
                         enableNamePrefix:
+                          default: false
+                          description: EnableNamePrefix indicates whether the operator
+                            should prepend a prefix to resource names for tenant namespaces.
+                            If not specified, it defaults to false.
                           type: boolean
                         enableNameSuffix:
+                          default: false
+                          description: EnableNameSuffix indicates whether the operator
+                            should append a suffix to resource names for tenant namespaces.
+                            If not specified, it defaults to false.
                           type: boolean
                         enableUserWorkloadMonitoring:
+                          default: false
+                          description: |-
+                            EnableUserWorkloadMonitoring indicates whether user workload monitoring should be enabled for tenant namespaces. If not specified, it defaults to false.
+                            When enabled, the operator will label the Namespace for each tenant with the necessary configuration to enable user workload monitoring.
                           type: boolean
                       type: object
                     name:
@@ -494,13 +549,16 @@ spec:
                       type: array
                   type: object
                 type: array
-              quotaReference:
-                description: QuotaReference is the name of the NamespaceResourceQuota
-                  resource to be applied to tenant namespaces.
+              resourceQuotaReference:
+                description: |-
+                  ResourceQuotaReference is the name of the NamespaceResourceQuota resource to be applied to tenant namespaces.
+                  This should reference a NamespaceResourceQuota resource.
+                  If specified, the operator will apply the referenced NamespaceResourceQuota to all tenant namespaces.
                 type: string
               roleBindings:
-                description: RoleBindings is a list of RoleBinding specifications
-                  to be applied to all tenant namespaces.
+                description: |-
+                  RoleBindings is a list of RoleBinding specifications to be applied to all tenant namespaces.
+                  If specified, the operator will create or update the specified RoleBindings in all tenant namespaces.
                 items:
                   properties:
                     name:

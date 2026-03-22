@@ -30,15 +30,24 @@ type MultiTenantConfigSpec struct {
 	// ArgoCD contains the configuration for Argo CD integration in the multi-tenant environment.
 	ArgoCD *ArgoCDSpec `json:"argocd,omitempty"`
 	// ResourceQuotaReference is the name of the NamespaceResourceQuota resource to be applied to tenant namespaces.
+	// This should reference a NamespaceResourceQuota resource.
+	// If specified, the operator will apply the referenced NamespaceResourceQuota to all tenant namespaces.
+	// +kubebuilder:validation:Optional
 	ResourceQuotaReference string `json:"resourceQuotaReference,omitempty"`
 	// LimitRangeReference is the name of the NamespaceLimitRange resource to be applied to tenant namespaces.
+	// This should reference a NamespaceLimitRange resource.
+	// If specified, the operator will apply the referenced NamespaceLimitRange to all tenant namespaces.
+	// +kubebuilder:validation:Optional
 	LimitRangeReference string `json:"limitRangeReference,omitempty"`
 	// ConfigSpec contains additional configuration options for the multi-tenant environment.
 	// These options are applied globally to all tenant namespaces.
 	ConfigSpec ConfigSpec `json:"configSpec,omitempty"`
 	// RoleBindings is a list of RoleBinding specifications to be applied to all tenant namespaces.
+	// If specified, the operator will create or update the specified RoleBindings in all tenant namespaces.
+	// +kubebuilder:validation:Optional
 	RoleBindings []RoleBindingSpec `json:"roleBindings,omitempty"`
 	// Namespaces is a list of namespace specifications for the multi-tenant environment.
+	// +kubebuilder:validation:required
 	Namespaces []NamespaceSpec `json:"namespaces,omitempty"`
 }
 
