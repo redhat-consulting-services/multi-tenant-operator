@@ -120,6 +120,13 @@ func (r *MultiTenantConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, err
 	}
 
+	// create or update Argo CD AppProject in the Argo CD instance namespace based on the MultiTenantConfig spec
+	err = namespaced.CreateOrUpdateArgoCDProject(ctx, r.Client, mtc, namespaces)
+	if err != nil {
+		log.Error(err, "Failed to create or update Argo CD AppProject")
+		return ctrl.Result{}, err
+	}
+
 	return ctrl.Result{}, nil
 }
 
