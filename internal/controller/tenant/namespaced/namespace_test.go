@@ -70,7 +70,7 @@ func TestCreateOrUpdateNamespacesCreatesNamespaces(t *testing.T) {
 
 	ownerRef := created.OwnerReferences[0]
 	if ownerRef.Kind != multiTenantConfigKind || ownerRef.Name != "example-mtc" {
-		t.Fatalf("owner reference mismatch: got kind=%q name=%q", ownerRef.Kind, ownerRef.Name)
+		t.Fatalf("owner reference mismatch: got kind=%q name=%q want kind=%q name=%q", ownerRef.Kind, ownerRef.Name, multiTenantConfigKind, "example-mtc")
 	}
 }
 
