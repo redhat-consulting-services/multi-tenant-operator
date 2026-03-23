@@ -55,7 +55,7 @@ func TestCreateOrUpdateRoleBindingsCreatesPerNamespace(t *testing.T) {
 	mtc := &tenantv1alpha1.MultiTenantConfig{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: tenantv1alpha1.GroupVersion.String(),
-			Kind:       "MultiTenantConfig",
+			Kind:       mtcKind,
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name: tenantB,
@@ -127,7 +127,7 @@ func TestCreateOrUpdateRoleBindingsCreatesPerNamespace(t *testing.T) {
 				t.Fatalf("expected one owner reference for namespace %q and rolebinding %q, got %d", namespace, name, len(rb.OwnerReferences))
 			}
 			ownerRef := rb.OwnerReferences[0]
-			if ownerRef.Kind != "MultiTenantConfig" || ownerRef.Name != tenantB {
+			if ownerRef.Kind != mtcKind || ownerRef.Name != tenantB {
 				t.Fatalf("owner reference mismatch for namespace %q and rolebinding %q: got kind=%q name=%q", namespace, name, ownerRef.Kind, ownerRef.Name)
 			}
 		}
@@ -166,7 +166,7 @@ func TestCreateOrUpdateRoleBindingsUpdatesExistingRoleBinding(t *testing.T) {
 	mtc := &tenantv1alpha1.MultiTenantConfig{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: tenantv1alpha1.GroupVersion.String(),
-			Kind:       "MultiTenantConfig",
+			Kind:       mtcKind,
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name: tenantC,
@@ -223,7 +223,7 @@ func TestCreateOrUpdateRoleBindingsUpdatesExistingRoleBinding(t *testing.T) {
 		t.Fatalf("expected one owner reference, got %d", len(updated.OwnerReferences))
 	}
 	ownerRef := updated.OwnerReferences[0]
-	if ownerRef.Kind != "MultiTenantConfig" || ownerRef.Name != tenantC {
+	if ownerRef.Kind != mtcKind || ownerRef.Name != tenantC {
 		t.Fatalf("owner reference mismatch: got kind=%q name=%q", ownerRef.Kind, ownerRef.Name)
 	}
 }

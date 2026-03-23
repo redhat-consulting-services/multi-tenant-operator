@@ -56,7 +56,7 @@ func TestCreateOrUpdateResourceQuotasCreatesPerNamespace(t *testing.T) {
 	mtc := &tenantv1alpha1.MultiTenantConfig{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: tenantv1alpha1.GroupVersion.String(),
-			Kind:       "MultiTenantConfig",
+			Kind:       mtcKind,
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name: tenantB,
@@ -112,7 +112,7 @@ func TestCreateOrUpdateResourceQuotasCreatesPerNamespace(t *testing.T) {
 			t.Fatalf("expected one owner reference for namespace %q, got %d", namespace, len(rq.OwnerReferences))
 		}
 		ownerRef := rq.OwnerReferences[0]
-		if ownerRef.Kind != "MultiTenantConfig" || ownerRef.Name != tenantB {
+		if ownerRef.Kind != mtcKind || ownerRef.Name != tenantB {
 			t.Fatalf("owner reference mismatch for namespace %q: got kind=%q name=%q", namespace, ownerRef.Kind, ownerRef.Name)
 		}
 	}
@@ -147,7 +147,7 @@ func TestCreateOrUpdateResourceQuotasUpdatesExistingResourceQuota(t *testing.T) 
 	mtc := &tenantv1alpha1.MultiTenantConfig{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: tenantv1alpha1.GroupVersion.String(),
-			Kind:       "MultiTenantConfig",
+			Kind:       mtcKind,
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name: tenantC,
@@ -197,7 +197,7 @@ func TestCreateOrUpdateResourceQuotasUpdatesExistingResourceQuota(t *testing.T) 
 		t.Fatalf("expected one owner reference, got %d", len(updated.OwnerReferences))
 	}
 	ownerRef := updated.OwnerReferences[0]
-	if ownerRef.Kind != "MultiTenantConfig" || ownerRef.Name != tenantC {
+	if ownerRef.Kind != mtcKind || ownerRef.Name != tenantC {
 		t.Fatalf("owner reference mismatch: got kind=%q name=%q", ownerRef.Kind, ownerRef.Name)
 	}
 }

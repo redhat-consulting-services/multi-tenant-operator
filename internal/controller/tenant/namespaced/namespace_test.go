@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	multiTenantConfigKind = "MultiTenantConfig"
+	multiTenantConfigKind = mtcKind
 )
 
 func TestCreateOrUpdateNamespacesCreatesNamespaces(t *testing.T) {

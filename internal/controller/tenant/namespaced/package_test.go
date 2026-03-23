@@ -6,4 +6,6 @@ const (
 	tenantC = "tenant-c"
 
 	keepMe = "keep-me"
+
+	mtcKind = "MultiTenantConfig"
 )
