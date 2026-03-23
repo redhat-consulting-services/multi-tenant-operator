@@ -9,6 +9,8 @@ const (
 	managedByLabelKey                  = "app.kubernetes.io/managed-by"
 	managedByLabelValue                = "multi-tenant-operator"
 	multiTenantConfigNameLabelKey      = "tenant.openshift.io/multi-tenant-config"
+
+	trueKeyValue = "true"
 )
 
 // getGeneratedNamespaceName generates a name for a resource based on the provided base name, tenant name, and configuration options for name prefix/suffix. It returns the generated name as a string.

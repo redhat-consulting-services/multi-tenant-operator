@@ -37,7 +37,7 @@ func CreateOrUpdateNamespaces(ctx context.Context, client client.Client, mtc *te
 			namespace.Labels[managedByLabelKey] = managedByLabelValue
 			namespace.Labels[multiTenantConfigNameLabelKey] = mtc.Name
 			if mtc.Spec.ConfigSpec.EnableUserWorkloadMonitoring {
-				namespace.Labels["openshift.io/user-monitoring"] = "true"
+				namespace.Labels["openshift.io/user-monitoring"] = trueKeyValue
 			}
 
 			// annotations

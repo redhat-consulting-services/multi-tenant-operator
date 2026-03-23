@@ -7,8 +7,8 @@ import (
 	tenantv1alpha1 "github.com/redhat-consulting-services/multi-tenant-operator/api/tenant/v1alpha1"
 	tenantconfigv1alpha1 "github.com/redhat-consulting-services/multi-tenant-operator/api/tenantconfig/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -26,7 +26,7 @@ func TestCreateOrUpdateLimitRangesSkipsWhenReferenceNotSet(t *testing.T) {
 
 	cl := fake.NewClientBuilder().WithScheme(scheme).Build()
 	mtc := &tenantv1alpha1.MultiTenantConfig{
-		ObjectMeta: metav1.ObjectMeta{Name: "tenant-a"},
+		ObjectMeta: metav1.ObjectMeta{Name: tenantA},
 	}
 	limitRangeSpec := &tenantconfigv1alpha1.NamespaceLimitRange{}
 
@@ -60,7 +60,7 @@ func TestCreateOrUpdateLimitRangesCreatesPerNamespace(t *testing.T) {
 			Kind:       "MultiTenantConfig",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "tenant-b",
+			Name: tenantB,
 			UID:  types.UID("ffb55fd7-a01b-4fef-ae4e-100ced7e4f60"),
 		},
 		Spec: tenantv1alpha1.MultiTenantConfigSpec{LimitRangeReference: "default-limits"},
@@ -89,14 +89,14 @@ func TestCreateOrUpdateLimitRangesCreatesPerNamespace(t *testing.T) {
 			t.Fatalf("failed to get limitrange for namespace %q: %v", namespace, err)
 		}
 
-		if got := lr.Labels[managedNamespacetenantNameLabelKey]; got != "tenant-b" {
-			t.Fatalf("tenant-name label mismatch for namespace %q: got %q, want %q", namespace, got, "tenant-b")
+		if got := lr.Labels[managedNamespacetenantNameLabelKey]; got != tenantB {
+			t.Fatalf("tenant-name label mismatch for namespace %q: got %q, want %q", namespace, got, tenantB)
 		}
 		if got := lr.Labels[managedByLabelKey]; got != managedByLabelValue {
 			t.Fatalf("managed-by label mismatch for namespace %q: got %q, want %q", namespace, got, managedByLabelValue)
 		}
-		if got := lr.Labels[multiTenantConfigNameLabelKey]; got != "tenant-b" {
-			t.Fatalf("multitenantconfig label mismatch for namespace %q: got %q, want %q", namespace, got, "tenant-b")
+		if got := lr.Labels[multiTenantConfigNameLabelKey]; got != tenantB {
+			t.Fatalf("multitenantconfig label mismatch for namespace %q: got %q, want %q", namespace, got, tenantB)
 		}
 
 		if len(lr.Spec.Limits) != 1 {
@@ -116,7 +116,7 @@ func TestCreateOrUpdateLimitRangesCreatesPerNamespace(t *testing.T) {
 			t.Fatalf("expected one owner reference for namespace %q, got %d", namespace, len(lr.OwnerReferences))
 		}
 		ownerRef := lr.OwnerReferences[0]
-		if ownerRef.Kind != "MultiTenantConfig" || ownerRef.Name != "tenant-b" {
+		if ownerRef.Kind != "MultiTenantConfig" || ownerRef.Name != tenantB {
 			t.Fatalf("owner reference mismatch for namespace %q: got kind=%q name=%q", namespace, ownerRef.Kind, ownerRef.Name)
 		}
 	}
@@ -136,7 +136,7 @@ func TestCreateOrUpdateLimitRangesUpdatesExistingLimitRange(t *testing.T) {
 			Name:      "tenant-limit-range",
 			Namespace: "team-c",
 			Labels: map[string]string{
-				"custom":          "keep-me",
+				"custom":          keepMe,
 				managedByLabelKey: "old-value",
 			},
 		},
@@ -155,7 +155,7 @@ func TestCreateOrUpdateLimitRangesUpdatesExistingLimitRange(t *testing.T) {
 			Kind:       "MultiTenantConfig",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "tenant-c",
+			Name: tenantC,
 			UID:  types.UID("8de05f15-be4f-4ae1-9a84-114bc48fb019"),
 		},
 		Spec: tenantv1alpha1.MultiTenantConfigSpec{LimitRangeReference: "tenant-limits"},
@@ -179,14 +179,14 @@ func TestCreateOrUpdateLimitRangesUpdatesExistingLimitRange(t *testing.T) {
 		t.Fatalf("failed to get updated limitrange: %v", err)
 	}
 
-	if got := updated.Labels["custom"]; got != "keep-me" {
+	if got := updated.Labels["custom"]; got != keepMe {
 		t.Fatalf("custom label should be preserved, got %q", got)
 	}
 	if got := updated.Labels[managedByLabelKey]; got != managedByLabelValue {
 		t.Fatalf("managed-by label mismatch: got %q, want %q", got, managedByLabelValue)
 	}
-	if got := updated.Labels[multiTenantConfigNameLabelKey]; got != "tenant-c" {
-		t.Fatalf("multitenantconfig label mismatch: got %q, want %q", got, "tenant-c")
+	if got := updated.Labels[multiTenantConfigNameLabelKey]; got != tenantC {
+		t.Fatalf("multitenantconfig label mismatch: got %q, want %q", got, tenantC)
 	}
 
 	if len(updated.Spec.Limits) != 1 {
@@ -200,7 +200,7 @@ func TestCreateOrUpdateLimitRangesUpdatesExistingLimitRange(t *testing.T) {
 		t.Fatalf("expected one owner reference, got %d", len(updated.OwnerReferences))
 	}
 	ownerRef := updated.OwnerReferences[0]
-	if ownerRef.Kind != "MultiTenantConfig" || ownerRef.Name != "tenant-c" {
+	if ownerRef.Kind != "MultiTenantConfig" || ownerRef.Name != tenantC {
 		t.Fatalf("owner reference mismatch: got kind=%q name=%q", ownerRef.Kind, ownerRef.Name)
 	}
 }

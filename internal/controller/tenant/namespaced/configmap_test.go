@@ -24,7 +24,7 @@ func TestCreateOrUpdateConfigMapsSkipsWhenDisabled(t *testing.T) {
 
 	cl := fake.NewClientBuilder().WithScheme(scheme).Build()
 	mtc := &tenantv1alpha1.MultiTenantConfig{
-		ObjectMeta: metav1.ObjectMeta{Name: "tenant-a"},
+		ObjectMeta: metav1.ObjectMeta{Name: tenantA},
 		Spec: tenantv1alpha1.MultiTenantConfigSpec{
 			ConfigSpec: tenantv1alpha1.ConfigSpec{EnableCertificateConfigMapCreation: false},
 		},
@@ -60,7 +60,7 @@ func TestCreateOrUpdateConfigMapsCreatesPerNamespace(t *testing.T) {
 			Kind:       "MultiTenantConfig",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "tenant-b",
+			Name: tenantB,
 			UID:  types.UID("2a8fb8ad-5e02-4d66-8cae-f0f379f4fdd9"),
 		},
 		Spec: tenantv1alpha1.MultiTenantConfigSpec{
@@ -79,24 +79,24 @@ func TestCreateOrUpdateConfigMapsCreatesPerNamespace(t *testing.T) {
 			t.Fatalf("failed to get configmap for namespace %q: %v", namespace, err)
 		}
 
-		if got := cm.Labels[managedNamespacetenantNameLabelKey]; got != "tenant-b" {
-			t.Fatalf("tenant-name label mismatch for namespace %q: got %q, want %q", namespace, got, "tenant-b")
+		if got := cm.Labels[managedNamespacetenantNameLabelKey]; got != tenantB {
+			t.Fatalf("tenant-name label mismatch for namespace %q: got %q, want %q", namespace, got, tenantB)
 		}
 		if got := cm.Labels[managedByLabelKey]; got != managedByLabelValue {
 			t.Fatalf("managed-by label mismatch for namespace %q: got %q, want %q", namespace, got, managedByLabelValue)
 		}
-		if got := cm.Labels[multiTenantConfigNameLabelKey]; got != "tenant-b" {
-			t.Fatalf("multitenantconfig label mismatch for namespace %q: got %q, want %q", namespace, got, "tenant-b")
+		if got := cm.Labels[multiTenantConfigNameLabelKey]; got != tenantB {
+			t.Fatalf("multitenantconfig label mismatch for namespace %q: got %q, want %q", namespace, got, tenantB)
 		}
-		if got := cm.Labels["config.openshift.io/inject-trusted-cabundle"]; got != "true" {
-			t.Fatalf("inject-trusted-cabundle label mismatch for namespace %q: got %q, want %q", namespace, got, "true")
+		if got := cm.Labels["config.openshift.io/inject-trusted-cabundle"]; got != trueKeyValue {
+			t.Fatalf("inject-trusted-cabundle label mismatch for namespace %q: got %q, want %q", namespace, got, trueKeyValue)
 		}
 
 		if len(cm.OwnerReferences) != 1 {
 			t.Fatalf("expected one owner reference for namespace %q, got %d", namespace, len(cm.OwnerReferences))
 		}
 		ownerRef := cm.OwnerReferences[0]
-		if ownerRef.Kind != "MultiTenantConfig" || ownerRef.Name != "tenant-b" {
+		if ownerRef.Kind != "MultiTenantConfig" || ownerRef.Name != tenantB {
 			t.Fatalf("owner reference mismatch for namespace %q: got kind=%q name=%q", namespace, ownerRef.Kind, ownerRef.Name)
 		}
 	}
@@ -116,7 +116,7 @@ func TestCreateOrUpdateConfigMapsUpdatesExistingConfigMap(t *testing.T) {
 			Name:      "user-ca-bundle",
 			Namespace: "team-c",
 			Labels: map[string]string{
-				"custom":             "keep-me",
+				"custom":             keepMe,
 				managedByLabelKey:    "old-value",
 				"obsolete-managedby": "still-present",
 			},
@@ -130,7 +130,7 @@ func TestCreateOrUpdateConfigMapsUpdatesExistingConfigMap(t *testing.T) {
 			Kind:       "MultiTenantConfig",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "tenant-c",
+			Name: tenantC,
 			UID:  types.UID("4ab31f20-d693-4e48-84cb-bff8cc8d7d29"),
 		},
 		Spec: tenantv1alpha1.MultiTenantConfigSpec{
@@ -148,24 +148,24 @@ func TestCreateOrUpdateConfigMapsUpdatesExistingConfigMap(t *testing.T) {
 		t.Fatalf("failed to get updated configmap: %v", err)
 	}
 
-	if got := updated.Labels["custom"]; got != "keep-me" {
+	if got := updated.Labels["custom"]; got != keepMe {
 		t.Fatalf("custom label should be preserved, got %q", got)
 	}
 	if got := updated.Labels[managedByLabelKey]; got != managedByLabelValue {
 		t.Fatalf("managed-by label mismatch: got %q, want %q", got, managedByLabelValue)
 	}
-	if got := updated.Labels[multiTenantConfigNameLabelKey]; got != "tenant-c" {
-		t.Fatalf("multitenantconfig label mismatch: got %q, want %q", got, "tenant-c")
+	if got := updated.Labels[multiTenantConfigNameLabelKey]; got != tenantC {
+		t.Fatalf("multitenantconfig label mismatch: got %q, want %q", got, tenantC)
 	}
-	if got := updated.Labels["config.openshift.io/inject-trusted-cabundle"]; got != "true" {
-		t.Fatalf("inject-trusted-cabundle label mismatch: got %q, want %q", got, "true")
+	if got := updated.Labels["config.openshift.io/inject-trusted-cabundle"]; got != trueKeyValue {
+		t.Fatalf("inject-trusted-cabundle label mismatch: got %q, want %q", got, trueKeyValue)
 	}
 
 	if len(updated.OwnerReferences) != 1 {
 		t.Fatalf("expected one owner reference, got %d", len(updated.OwnerReferences))
 	}
 	ownerRef := updated.OwnerReferences[0]
-	if ownerRef.Kind != "MultiTenantConfig" || ownerRef.Name != "tenant-c" {
+	if ownerRef.Kind != "MultiTenantConfig" || ownerRef.Name != tenantC {
 		t.Fatalf("owner reference mismatch: got kind=%q name=%q", ownerRef.Kind, ownerRef.Name)
 	}
 }

@@ -25,7 +25,7 @@ func TestCreateOrUpdateResourceQuotasSkipsWhenReferenceNotSet(t *testing.T) {
 
 	cl := fake.NewClientBuilder().WithScheme(scheme).Build()
 	mtc := &tenantv1alpha1.MultiTenantConfig{
-		ObjectMeta: metav1.ObjectMeta{Name: "tenant-a"},
+		ObjectMeta: metav1.ObjectMeta{Name: tenantA},
 	}
 	rqSpec := &tenantconfigv1alpha1.NamespaceResourceQuota{}
 
@@ -59,7 +59,7 @@ func TestCreateOrUpdateResourceQuotasCreatesPerNamespace(t *testing.T) {
 			Kind:       "MultiTenantConfig",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "tenant-b",
+			Name: tenantB,
 			UID:  types.UID("57f7e17f-572e-49f0-802f-574dc2f6e2f2"),
 		},
 		Spec: tenantv1alpha1.MultiTenantConfigSpec{ResourceQuotaReference: "default-quota"},
@@ -88,14 +88,14 @@ func TestCreateOrUpdateResourceQuotasCreatesPerNamespace(t *testing.T) {
 			t.Fatalf("failed to get resourcequota for namespace %q: %v", namespace, err)
 		}
 
-		if got := rq.Labels[managedNamespacetenantNameLabelKey]; got != "tenant-b" {
-			t.Fatalf("tenant-name label mismatch for namespace %q: got %q, want %q", namespace, got, "tenant-b")
+		if got := rq.Labels[managedNamespacetenantNameLabelKey]; got != tenantB {
+			t.Fatalf("tenant-name label mismatch for namespace %q: got %q, want %q", namespace, got, tenantB)
 		}
 		if got := rq.Labels[managedByLabelKey]; got != managedByLabelValue {
 			t.Fatalf("managed-by label mismatch for namespace %q: got %q, want %q", namespace, got, managedByLabelValue)
 		}
-		if got := rq.Labels[multiTenantConfigNameLabelKey]; got != "tenant-b" {
-			t.Fatalf("multitenantconfig label mismatch for namespace %q: got %q, want %q", namespace, got, "tenant-b")
+		if got := rq.Labels[multiTenantConfigNameLabelKey]; got != tenantB {
+			t.Fatalf("multitenantconfig label mismatch for namespace %q: got %q, want %q", namespace, got, tenantB)
 		}
 
 		if got := rq.Spec.Hard.Cpu().String(); got != "2" {
@@ -112,7 +112,7 @@ func TestCreateOrUpdateResourceQuotasCreatesPerNamespace(t *testing.T) {
 			t.Fatalf("expected one owner reference for namespace %q, got %d", namespace, len(rq.OwnerReferences))
 		}
 		ownerRef := rq.OwnerReferences[0]
-		if ownerRef.Kind != "MultiTenantConfig" || ownerRef.Name != "tenant-b" {
+		if ownerRef.Kind != "MultiTenantConfig" || ownerRef.Name != tenantB {
 			t.Fatalf("owner reference mismatch for namespace %q: got kind=%q name=%q", namespace, ownerRef.Kind, ownerRef.Name)
 		}
 	}
@@ -132,7 +132,7 @@ func TestCreateOrUpdateResourceQuotasUpdatesExistingResourceQuota(t *testing.T) 
 			Name:      "tenant-resource-quota",
 			Namespace: "team-c",
 			Labels: map[string]string{
-				"custom":          "keep-me",
+				"custom":          keepMe,
 				managedByLabelKey: "old-value",
 			},
 		},
@@ -150,7 +150,7 @@ func TestCreateOrUpdateResourceQuotasUpdatesExistingResourceQuota(t *testing.T) 
 			Kind:       "MultiTenantConfig",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "tenant-c",
+			Name: tenantC,
 			UID:  types.UID("5cb6afce-160e-47f8-b8c0-9120353647f4"),
 		},
 		Spec: tenantv1alpha1.MultiTenantConfigSpec{ResourceQuotaReference: "tenant-quota"},
@@ -176,14 +176,14 @@ func TestCreateOrUpdateResourceQuotasUpdatesExistingResourceQuota(t *testing.T) 
 		t.Fatalf("failed to get updated resourcequota: %v", err)
 	}
 
-	if got := updated.Labels["custom"]; got != "keep-me" {
+	if got := updated.Labels["custom"]; got != keepMe {
 		t.Fatalf("custom label should be preserved, got %q", got)
 	}
 	if got := updated.Labels[managedByLabelKey]; got != managedByLabelValue {
 		t.Fatalf("managed-by label mismatch: got %q, want %q", got, managedByLabelValue)
 	}
-	if got := updated.Labels[multiTenantConfigNameLabelKey]; got != "tenant-c" {
-		t.Fatalf("multitenantconfig label mismatch: got %q, want %q", got, "tenant-c")
+	if got := updated.Labels[multiTenantConfigNameLabelKey]; got != tenantC {
+		t.Fatalf("multitenantconfig label mismatch: got %q, want %q", got, tenantC)
 	}
 
 	if got := updated.Spec.Hard.Cpu().String(); got != "3" {
@@ -197,7 +197,7 @@ func TestCreateOrUpdateResourceQuotasUpdatesExistingResourceQuota(t *testing.T) 
 		t.Fatalf("expected one owner reference, got %d", len(updated.OwnerReferences))
 	}
 	ownerRef := updated.OwnerReferences[0]
-	if ownerRef.Kind != "MultiTenantConfig" || ownerRef.Name != "tenant-c" {
+	if ownerRef.Kind != "MultiTenantConfig" || ownerRef.Name != tenantC {
 		t.Fatalf("owner reference mismatch: got kind=%q name=%q", ownerRef.Kind, ownerRef.Name)
 	}
 }

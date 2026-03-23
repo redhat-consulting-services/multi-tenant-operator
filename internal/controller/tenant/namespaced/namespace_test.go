@@ -35,7 +35,7 @@ func TestCreateOrUpdateNamespacesCreatesNamespaces(t *testing.T) {
 			Annotations: map[string]string{"contact": "platform-team"},
 		},
 		Spec: tenantv1alpha1.MultiTenantConfigSpec{
-			Namespaces: []tenantv1alpha1.NamespaceSpec{{Name: "tenant-a"}},
+			Namespaces: []tenantv1alpha1.NamespaceSpec{{Name: tenantA}},
 		},
 	}
 
@@ -44,7 +44,7 @@ func TestCreateOrUpdateNamespacesCreatesNamespaces(t *testing.T) {
 	}
 
 	created := &corev1.Namespace{}
-	if err := cl.Get(context.Background(), client.ObjectKey{Name: "tenant-a"}, created); err != nil {
+	if err := cl.Get(context.Background(), client.ObjectKey{Name: tenantA}, created); err != nil {
 		t.Fatalf("failed to get created namespace: %v", err)
 	}
 
@@ -85,7 +85,7 @@ func TestCreateOrUpdateNamespacesUpdatesExistingNamespace(t *testing.T) {
 
 	existing := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:   "tenant-b",
+			Name:   tenantB,
 			Labels: map[string]string{"custom": "kept", managedByLabelKey: "old-value"},
 			Annotations: map[string]string{
 				"existing": "kept",
@@ -102,7 +102,7 @@ func TestCreateOrUpdateNamespacesUpdatesExistingNamespace(t *testing.T) {
 			Annotations: map[string]string{"sla": "gold"},
 		},
 		Spec: tenantv1alpha1.MultiTenantConfigSpec{
-			Namespaces: []tenantv1alpha1.NamespaceSpec{{Name: "tenant-b"}},
+			Namespaces: []tenantv1alpha1.NamespaceSpec{{Name: tenantB}},
 		},
 	}
 
@@ -111,7 +111,7 @@ func TestCreateOrUpdateNamespacesUpdatesExistingNamespace(t *testing.T) {
 	}
 
 	updated := &corev1.Namespace{}
-	if err := cl.Get(context.Background(), client.ObjectKey{Name: "tenant-b"}, updated); err != nil {
+	if err := cl.Get(context.Background(), client.ObjectKey{Name: tenantB}, updated); err != nil {
 		t.Fatalf("failed to get updated namespace: %v", err)
 	}
 

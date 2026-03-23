@@ -41,7 +41,7 @@ func createOrUpdateConfigMap(ctx context.Context, client client.Client, mtc *ten
 		configMap.Labels[managedNamespacetenantNameLabelKey] = mtc.Name
 		configMap.Labels[managedByLabelKey] = managedByLabelValue
 		configMap.Labels[multiTenantConfigNameLabelKey] = mtc.Name
-		configMap.Labels["config.openshift.io/inject-trusted-cabundle"] = "true"
+		configMap.Labels["config.openshift.io/inject-trusted-cabundle"] = trueKeyValue
 
 		// set ownership reference to the MultiTenantConfig
 		if err := controllerutil.SetControllerReference(mtc, configMap, client.Scheme()); err != nil {

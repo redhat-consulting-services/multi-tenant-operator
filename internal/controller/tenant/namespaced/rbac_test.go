@@ -25,7 +25,7 @@ func TestCreateOrUpdateRoleBindingsSkipsWhenNoRoleBindingsConfigured(t *testing.
 
 	cl := fake.NewClientBuilder().WithScheme(scheme).Build()
 	mtc := &tenantv1alpha1.MultiTenantConfig{
-		ObjectMeta: metav1.ObjectMeta{Name: "tenant-a"},
+		ObjectMeta: metav1.ObjectMeta{Name: tenantA},
 	}
 
 	err := CreateOrUpdateRoleBindings(context.Background(), cl, mtc, []string{"ns-a", "ns-b"})
@@ -58,7 +58,7 @@ func TestCreateOrUpdateRoleBindingsCreatesPerNamespace(t *testing.T) {
 			Kind:       "MultiTenantConfig",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "tenant-b",
+			Name: tenantB,
 			UID:  types.UID("0dccff11-f8f8-43e9-a7a5-d2892e15f39d"),
 		},
 		Spec: tenantv1alpha1.MultiTenantConfigSpec{
@@ -106,14 +106,14 @@ func TestCreateOrUpdateRoleBindingsCreatesPerNamespace(t *testing.T) {
 				t.Fatalf("failed to get rolebinding %q for namespace %q: %v", name, namespace, err)
 			}
 
-			if got := rb.Labels[managedNamespacetenantNameLabelKey]; got != "tenant-b" {
-				t.Fatalf("tenant-name label mismatch for namespace %q and rolebinding %q: got %q, want %q", namespace, name, got, "tenant-b")
+			if got := rb.Labels[managedNamespacetenantNameLabelKey]; got != tenantB {
+				t.Fatalf("tenant-name label mismatch for namespace %q and rolebinding %q: got %q, want %q", namespace, name, got, tenantB)
 			}
 			if got := rb.Labels[managedByLabelKey]; got != managedByLabelValue {
 				t.Fatalf("managed-by label mismatch for namespace %q and rolebinding %q: got %q, want %q", namespace, name, got, managedByLabelValue)
 			}
-			if got := rb.Labels[multiTenantConfigNameLabelKey]; got != "tenant-b" {
-				t.Fatalf("multitenantconfig label mismatch for namespace %q and rolebinding %q: got %q, want %q", namespace, name, got, "tenant-b")
+			if got := rb.Labels[multiTenantConfigNameLabelKey]; got != tenantB {
+				t.Fatalf("multitenantconfig label mismatch for namespace %q and rolebinding %q: got %q, want %q", namespace, name, got, tenantB)
 			}
 
 			if !reflect.DeepEqual(rb.RoleRef, wantSpec.RoleRef) {
@@ -127,7 +127,7 @@ func TestCreateOrUpdateRoleBindingsCreatesPerNamespace(t *testing.T) {
 				t.Fatalf("expected one owner reference for namespace %q and rolebinding %q, got %d", namespace, name, len(rb.OwnerReferences))
 			}
 			ownerRef := rb.OwnerReferences[0]
-			if ownerRef.Kind != "MultiTenantConfig" || ownerRef.Name != "tenant-b" {
+			if ownerRef.Kind != "MultiTenantConfig" || ownerRef.Name != tenantB {
 				t.Fatalf("owner reference mismatch for namespace %q and rolebinding %q: got kind=%q name=%q", namespace, name, ownerRef.Kind, ownerRef.Name)
 			}
 		}
@@ -148,7 +148,7 @@ func TestCreateOrUpdateRoleBindingsUpdatesExistingRoleBinding(t *testing.T) {
 			Name:      "access",
 			Namespace: "team-c",
 			Labels: map[string]string{
-				"custom":          "keep-me",
+				"custom":          keepMe,
 				managedByLabelKey: "old-value",
 			},
 		},
@@ -169,7 +169,7 @@ func TestCreateOrUpdateRoleBindingsUpdatesExistingRoleBinding(t *testing.T) {
 			Kind:       "MultiTenantConfig",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "tenant-c",
+			Name: tenantC,
 			UID:  types.UID("ae4fbf11-2e83-4e8b-a9ec-f9ad6ca17a4e"),
 		},
 		Spec: tenantv1alpha1.MultiTenantConfigSpec{
@@ -200,14 +200,14 @@ func TestCreateOrUpdateRoleBindingsUpdatesExistingRoleBinding(t *testing.T) {
 		t.Fatalf("failed to get updated rolebinding: %v", err)
 	}
 
-	if got := updated.Labels["custom"]; got != "keep-me" {
+	if got := updated.Labels["custom"]; got != keepMe {
 		t.Fatalf("custom label should be preserved, got %q", got)
 	}
 	if got := updated.Labels[managedByLabelKey]; got != managedByLabelValue {
 		t.Fatalf("managed-by label mismatch: got %q, want %q", got, managedByLabelValue)
 	}
-	if got := updated.Labels[multiTenantConfigNameLabelKey]; got != "tenant-c" {
-		t.Fatalf("multitenantconfig label mismatch: got %q, want %q", got, "tenant-c")
+	if got := updated.Labels[multiTenantConfigNameLabelKey]; got != tenantC {
+		t.Fatalf("multitenantconfig label mismatch: got %q, want %q", got, tenantC)
 	}
 
 	wantRoleRef := mtc.Spec.RoleBindings[0].RoleRef
@@ -223,7 +223,7 @@ func TestCreateOrUpdateRoleBindingsUpdatesExistingRoleBinding(t *testing.T) {
 		t.Fatalf("expected one owner reference, got %d", len(updated.OwnerReferences))
 	}
 	ownerRef := updated.OwnerReferences[0]
-	if ownerRef.Kind != "MultiTenantConfig" || ownerRef.Name != "tenant-c" {
+	if ownerRef.Kind != "MultiTenantConfig" || ownerRef.Name != tenantC {
 		t.Fatalf("owner reference mismatch: got kind=%q name=%q", ownerRef.Kind, ownerRef.Name)
 	}
 }
