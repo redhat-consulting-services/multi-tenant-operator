@@ -1,5 +1,7 @@
 # multi-tenant-operator
 
+[![Docker Repository on Quay](https://quay.io/repository/redhat-consulting-services/multi-tenant-operator/status "Docker Repository on Quay")](https://quay.io/repository/redhat-consulting-services/multi-tenant-operator)
+
 multi-tenant-operator is a Kubernetes operator that automates the provisioning and lifecycle management of tenant namespaces on OpenShift clusters. It enforces consistent resource quotas, limit ranges, RBAC role bindings, network policies, and Argo CD project configurations across all namespaces belonging to a tenant, using a single `MultiTenantConfig` custom resource.
 
 ## Description
@@ -59,6 +61,7 @@ kubectl apply -k config/samples/
 >**NOTE**: Ensure that the samples has default values to test it out.
 
 ### To Uninstall
+
 **Delete the instances (CRs) from the cluster:**
 
 ```sh
