@@ -1,12 +1,23 @@
 # multi-tenant-operator
-// TODO(user): Add simple overview of use/purpose
+
+multi-tenant-operator is a Kubernetes operator that automates the provisioning and lifecycle management of tenant namespaces on OpenShift clusters. It enforces consistent resource quotas, limit ranges, RBAC role bindings, network policies, and Argo CD project configurations across all namespaces belonging to a tenant, using a single `MultiTenantConfig` custom resource.
 
 ## Description
-// TODO(user): An in-depth paragraph about your project and overview of use
+
+multi-tenant-operator is built with [operator-sdk](https://sdk.operatorframework.io/) and manages three custom resource kinds:
+
+- **`MultiTenantConfig`** (`tenant.openshift.io/v1alpha1`) — the central configuration object for a tenant. It declares which namespaces belong to the tenant and references a `NamespaceResourceQuota` and/or `NamespaceLimitRange` to be applied to them. It also controls optional per-namespace features such as OVN audit logging, user workload monitoring, OpenShift TLS certificate ConfigMap injection, Argo CD project creation, and RBAC role bindings. Configuration flags can be set globally for all namespaces and overridden on a per-namespace basis.
+
+- **`NamespaceResourceQuota`** (`tenantconfig.openshift.io/v1alpha1`, short name `nrq`) — a cluster-scoped template that wraps a standard Kubernetes `ResourceQuota` spec. The operator applies it as a `ResourceQuota` to every namespace managed by a referencing `MultiTenantConfig`.
+
+- **`NamespaceLimitRange`** (`tenantconfig.openshift.io/v1alpha1`, short name `nlr`) — a cluster-scoped template that wraps a standard Kubernetes `LimitRange` spec. The operator applies it as a `LimitRange` to every namespace managed by a referencing `MultiTenantConfig`.
+
+When a `MultiTenantConfig` is created or updated, the operator reconciles the desired state by creating or updating namespaces, resource quotas, limit ranges, role bindings, config maps (e.g. the OpenShift CA bundle), and Argo CD `AppProject` resources as needed.
 
 ## Getting Started
 
 ### Prerequisites
+
 - go version v1.24.0+
 - docker version 17.03+.
 - kubectl version v1.11.3+.
@@ -111,7 +122,8 @@ previously added to 'dist/chart/values.yaml' or 'dist/chart/manager/manager.yaml
 is manually re-applied afterwards.
 
 ## Contributing
-// TODO(user): Add detailed information on how you would like others to contribute to this project
+
+We welcome contributions! Please open an issue to discuss the change you would like to make before submitting a pull request. Ensure all new code is covered by unit tests and that `make test` passes locally. Follow the existing code style and use `gofmt` / `golint` to format your changes. For larger features, consider opening a GitHub Discussion first to align on the design.
 
 **NOTE:** Run `make help` for more information on all potential `make` targets
 
@@ -119,17 +131,4 @@ More information can be found via the [Kubebuilder Documentation](https://book.k
 
 ## License
 
-Copyright 2026.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
