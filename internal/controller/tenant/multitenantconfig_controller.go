@@ -62,7 +62,7 @@ func (r *MultiTenantConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	log := logf.FromContext(ctx)
 
 	mtc := &tenantv1alpha1.MultiTenantConfig{}
-	err := r.Client.Get(ctx, client.ObjectKey{Name: req.Name, Namespace: req.Namespace}, mtc)
+	err := r.Get(ctx, client.ObjectKey{Name: req.Name, Namespace: req.Namespace}, mtc)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -83,7 +83,7 @@ func (r *MultiTenantConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	if mtc.Spec.LimitRangeReference != "" {
 		nlr := &tenantconfigv1alpha1.NamespaceLimitRange{}
-		err = r.Client.Get(ctx, client.ObjectKey{Name: mtc.Spec.LimitRangeReference}, nlr)
+		err = r.Get(ctx, client.ObjectKey{Name: mtc.Spec.LimitRangeReference}, nlr)
 		if err != nil {
 			log.Error(err, "Failed to get NamespaceLimitRange")
 			return ctrl.Result{}, err
@@ -99,7 +99,7 @@ func (r *MultiTenantConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	if mtc.Spec.ResourceQuotaReference != "" {
 		nrr := &tenantconfigv1alpha1.NamespaceResourceQuota{}
-		err = r.Client.Get(ctx, client.ObjectKey{Name: mtc.Spec.ResourceQuotaReference}, nrr)
+		err = r.Get(ctx, client.ObjectKey{Name: mtc.Spec.ResourceQuotaReference}, nrr)
 		if err != nil {
 			log.Error(err, "Failed to get NamespaceResourceQuota")
 			return ctrl.Result{}, err

@@ -17,10 +17,10 @@ func CreateOrUpdateArgoCDProject(ctx context.Context, cl client.Client, mtc *ten
 		return nil
 	}
 	if mtc.Spec.ArgoCD.InstanceName == "" {
-		return errors.New("Argo CD instance name is required when Argo CD configuration is provided")
+		return errors.New("argo CD instance name is required when Argo CD configuration is provided")
 	}
 	if mtc.Spec.ArgoCD.InstanceNamespace == "" {
-		return errors.New("Argo CD instance namespace is required when Argo CD configuration is provided")
+		return errors.New("argo CD instance namespace is required when Argo CD configuration is provided")
 	}
 	if mtc.Spec.ArgoCD.Project == nil || !mtc.Spec.ArgoCD.Project.Enabled {
 		return nil
@@ -47,7 +47,6 @@ func createOrUpdateArgoCDProject(ctx context.Context, cl client.Client, mtc *ten
 
 		// set config spec fields
 		argoCDProject.Spec.SourceRepos = mtc.Spec.ArgoCD.Project.SourceRepos
-		argoCDProject.Spec.Destinations = mtc.Spec.ArgoCD.Project.Destinations
 		argoCDProject.Spec.Description = mtc.Spec.ArgoCD.Project.Description
 		argoCDProject.Spec.Roles = mtc.Spec.ArgoCD.Project.Roles
 		argoCDProject.Spec.ClusterResourceWhitelist = mtc.Spec.ArgoCD.Project.ClusterResourceWhitelist
@@ -60,6 +59,22 @@ func createOrUpdateArgoCDProject(ctx context.Context, cl client.Client, mtc *ten
 		argoCDProject.Spec.SourceNamespaces = mtc.Spec.ArgoCD.Project.SourceNamespaces
 		argoCDProject.Spec.PermitOnlyProjectScopedClusters = mtc.Spec.ArgoCD.Project.PermitOnlyProjectScopedClusters
 		argoCDProject.Spec.DestinationServiceAccounts = mtc.Spec.ArgoCD.Project.DestinationServiceAccounts
+
+		argoCDProject.Spec.Destinations = mtc.Spec.ArgoCD.Project.Destinations
+		if argoCDProject.Spec.Destinations == nil {
+			argoCDProject.Spec.Destinations = []argocdv1alpha1.ApplicationDestination{}
+		}
+		for _, v := range namespaces {
+			argoCDProject.Spec.Destinations = append(argoCDProject.Spec.Destinations, argocdv1alpha1.ApplicationDestination{
+				Server:    "https://kubernetes.default.svc",
+				Namespace: v,
+			})
+		}
+		// append tenant namespaces to the source namespaces list
+		if argoCDProject.Spec.SourceNamespaces == nil {
+			argoCDProject.Spec.SourceNamespaces = []string{}
+		}
+		argoCDProject.Spec.SourceNamespaces = append(argoCDProject.Spec.SourceNamespaces, namespaces...)
 
 		// set ownership reference to the MultiTenantConfig
 		if err := controllerutil.SetControllerReference(mtc, argoCDProject, cl.Scheme()); err != nil {
