@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	multiTenantConfigKind = (&tenantv1alpha1.MultiTenantConfig{}).GroupVersionKind().Kind
+	multiTenantConfigKind = "MultiTenantConfig"
 )
 
 func TestCreateOrUpdateNamespacesCreatesNamespaces(t *testing.T) {
