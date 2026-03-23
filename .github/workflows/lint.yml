@@ -4,9 +4,6 @@ on:
   push:
   pull_request:
 
-env:
-  GO_VERSION: 1.25
-
 jobs:
   lint:
     name: Run on Ubuntu
@@ -18,7 +15,6 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
-          go-version: "${{ env.GO_VERSION }}"
           go-version-file: go.mod
 
       - name: Run linter
