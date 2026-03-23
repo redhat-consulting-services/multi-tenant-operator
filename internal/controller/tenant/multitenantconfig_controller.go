@@ -25,6 +25,8 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	tenantv1alpha1 "github.com/redhat-consulting-services/multi-tenant-operator/api/tenant/v1alpha1"
+	tenantconfigv1alpha1 "github.com/redhat-consulting-services/multi-tenant-operator/api/tenantconfig/v1alpha1"
+	"github.com/redhat-consulting-services/multi-tenant-operator/internal/controller/tenant/namespaced"
 )
 
 // MultiTenantConfigReconciler reconciles a MultiTenantConfig object
@@ -37,6 +39,16 @@ type MultiTenantConfigReconciler struct {
 // +kubebuilder:rbac:groups=tenant.openshift.io,resources=multitenantconfigs/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=tenant.openshift.io,resources=multitenantconfigs/finalizers,verbs=update
 
+// +kubebuilder:rbac:groups=tenantconfig.openshift.io,resources=namespacelimitranges,verbs=get;list;watch
+// +kubebuilder:rbac:groups=tenantconfig.openshift.io,resources=namespaceresourcequotalists,verbs=get;list;watch
+
+// +kubebuilder:rbac:groups=core,resources=namespaces,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=core,resources=configmaps,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=core,resources=limitranges,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=core,resources=resourcequotas,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=rolebindings,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=argoproj.io,resources=appprojects,verbs=get;list;watch;create;update;patch;delete
+
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 // TODO(user): Modify the Reconcile function to compare the state specified by
@@ -47,9 +59,82 @@ type MultiTenantConfigReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.21.0/pkg/reconcile
 func (r *MultiTenantConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = logf.FromContext(ctx)
+	log := logf.FromContext(ctx)
 
-	// TODO(user): your logic here
+	mtc := &tenantv1alpha1.MultiTenantConfig{}
+	err := r.Get(ctx, client.ObjectKey{Name: req.Name, Namespace: req.Namespace}, mtc)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	// create or update namespaces based on the MultiTenantConfig spec
+	namespaces, err := namespaced.CreateOrUpdateNamespaces(ctx, r.Client, mtc)
+	if err != nil {
+		log.Error(err, "Failed to create or update namespaces")
+		return ctrl.Result{}, err
+	}
+
+	// create or update ConfigMaps in tenant namespaces based on the MultiTenantConfig spec
+	err = namespaced.CreateOrUpdateConfigMaps(ctx, r.Client, mtc, namespaces)
+	if err != nil {
+		log.Error(err, "Failed to create or update ConfigMaps in tenant namespaces")
+		return ctrl.Result{}, err
+	}
+
+	if mtc.Spec.LimitRangeReference != "" {
+		nlr := &tenantconfigv1alpha1.NamespaceLimitRange{}
+		err = r.Get(ctx, client.ObjectKey{Name: mtc.Spec.LimitRangeReference}, nlr)
+		if err != nil {
+			log.Error(err, "Failed to get NamespaceLimitRange")
+			return ctrl.Result{}, err
+		}
+
+		// create or update LimitRanges in tenant namespaces based on the MultiTenantConfig spec
+		err = namespaced.CreateOrUpdateLimitRanges(ctx, r.Client, mtc, nlr, namespaces)
+		if err != nil {
+			log.Error(err, "Failed to create or update LimitRanges in tenant namespaces")
+			return ctrl.Result{}, err
+		}
+	}
+
+	if mtc.Spec.ResourceQuotaReference != "" {
+		nrr := &tenantconfigv1alpha1.NamespaceResourceQuota{}
+		err = r.Get(ctx, client.ObjectKey{Name: mtc.Spec.ResourceQuotaReference}, nrr)
+		if err != nil {
+			log.Error(err, "Failed to get NamespaceResourceQuota")
+			return ctrl.Result{}, err
+		}
+
+		// create or update ResourceQuotas in tenant namespaces based on the MultiTenantConfig spec
+		err = namespaced.CreateOrUpdateResourceQuotas(ctx, r.Client, mtc, nrr, namespaces)
+		if err != nil {
+			log.Error(err, "Failed to create or update ResourceQuotas in tenant namespaces")
+			return ctrl.Result{}, err
+		}
+	}
+
+	// create or update RoleBindings in tenant namespaces based on the MultiTenantConfig spec
+	err = namespaced.CreateOrUpdateRoleBindings(ctx, r.Client, mtc, namespaces)
+	if err != nil {
+		log.Error(err, "Failed to create or update RoleBindings in tenant namespaces")
+		return ctrl.Result{}, err
+	}
+
+	// create or update Argo CD AppProject in the Argo CD instance namespace based on the MultiTenantConfig spec
+	err = namespaced.CreateOrUpdateArgoCDProject(ctx, r.Client, mtc, namespaces)
+	if err != nil {
+		log.Error(err, "Failed to create or update Argo CD AppProject")
+		return ctrl.Result{}, err
+	}
+
+	mtc.Status.LimitRangeReference = mtc.Spec.LimitRangeReference
+	mtc.Status.QuotaReference = mtc.Spec.ResourceQuotaReference
+	mtc.Status.ManagedNamespaceCount = len(namespaces)
+	err = r.Client.Status().Update(ctx, mtc)
+	if err != nil {
+		log.Error(err, "Failed to update MultiTenantConfig status")
+		return ctrl.Result{}, err
+	}
 
 	return ctrl.Result{}, nil
 }

@@ -36,6 +36,7 @@ type NamespaceLimitRangeStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +kubebuilder:resource:shortName=nlr
 // +kubebuilder:printcolumn:name="LimitItems",type="integer",JSONPath=".status.limitItems"
 
 // NamespaceLimitRange is the Schema for the namespacelimitranges API.

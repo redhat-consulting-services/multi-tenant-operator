@@ -5,10 +5,12 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
-  - tenantconfig.openshift.io
+  - ""
   resources:
-  - namespacelimitranges
-  - namespaceresourcequotas
+  - configmaps
+  - limitranges
+  - namespaces
+  - resourcequotas
   verbs:
   - create
   - delete
@@ -18,18 +20,61 @@ rules:
   - update
   - watch
 - apiGroups:
-  - tenantconfig.openshift.io
+  - argoproj.io
   resources:
-  - namespacelimitranges/finalizers
-  - namespaceresourcequotas/finalizers
+  - appprojects
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - tenant.openshift.io
+  resources:
+  - multitenantconfigs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - tenant.openshift.io
+  resources:
+  - multitenantconfigs/finalizers
   verbs:
   - update
 - apiGroups:
-  - tenantconfig.openshift.io
+  - tenant.openshift.io
   resources:
-  - namespacelimitranges/status
-  - namespaceresourcequotas/status
+  - multitenantconfigs/status
   verbs:
   - get
   - patch
   - update
+- apiGroups:
+  - tenantconfig.openshift.io
+  resources:
+  - namespacelimitranges
+  - namespaceresourcequotalists
+  verbs:
+  - get
+  - list
+  - watch

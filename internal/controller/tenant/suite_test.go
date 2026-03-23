@@ -20,6 +20,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -33,6 +34,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	tenantv1alpha1 "github.com/redhat-consulting-services/multi-tenant-operator/api/tenant/v1alpha1"
+	tenantconfigv1alpha1 "github.com/redhat-consulting-services/multi-tenant-operator/api/tenantconfig/v1alpha1"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -62,6 +64,9 @@ var _ = BeforeSuite(func() {
 	err = tenantv1alpha1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
+	err = tenantconfigv1alpha1.AddToScheme(scheme.Scheme)
+	Expect(err).NotTo(HaveOccurred())
+
 	// +kubebuilder:scaffold:scheme
 
 	By("bootstrapping test environment")
@@ -74,9 +79,15 @@ var _ = BeforeSuite(func() {
 	if getFirstFoundEnvTestBinaryDir() != "" {
 		testEnv.BinaryAssetsDirectory = getFirstFoundEnvTestBinaryDir()
 	}
+	if !hasEnvtestAssets(testEnv.BinaryAssetsDirectory) {
+		Skip("Skipping controller envtest suite: envtest binaries not found. Run 'make setup-envtest' to enable these tests.")
+	}
 
 	// cfg is defined in this file globally.
 	cfg, err = testEnv.Start()
+	if err != nil && strings.Contains(err.Error(), "no such file or directory") {
+		Skip("Skipping controller envtest suite: control plane binaries are not available on this machine.")
+	}
 	Expect(err).NotTo(HaveOccurred())
 	Expect(cfg).NotTo(BeNil())
 
@@ -86,11 +97,38 @@ var _ = BeforeSuite(func() {
 })
 
 var _ = AfterSuite(func() {
+	if cancel != nil {
+		cancel()
+	}
+	if testEnv == nil {
+		return
+	}
+
 	By("tearing down the test environment")
-	cancel()
 	err := testEnv.Stop()
-	Expect(err).NotTo(HaveOccurred())
+	if err != nil {
+		_, _ = GinkgoWriter.Write([]byte("Warning: failed to stop test environment: " + err.Error() + "\n"))
+	}
 })
+
+func hasEnvtestAssets(binaryAssetsDirectory string) bool {
+	binaryDir := binaryAssetsDirectory
+	if binaryDir == "" {
+		if envPath := os.Getenv("KUBEBUILDER_ASSETS"); envPath != "" {
+			binaryDir = envPath
+		} else {
+			binaryDir = "/usr/local/kubebuilder/bin"
+		}
+	}
+
+	for _, name := range []string{"etcd", "kube-apiserver", "kubectl"} {
+		if _, err := os.Stat(filepath.Join(binaryDir, name)); err != nil {
+			return false
+		}
+	}
+
+	return true
+}
 
 // getFirstFoundEnvTestBinaryDir locates the first binary in the specified path.
 // ENVTEST-based tests depend on specific binaries, usually located in paths set by
