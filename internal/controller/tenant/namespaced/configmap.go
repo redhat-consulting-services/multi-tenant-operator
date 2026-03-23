@@ -12,13 +12,13 @@ import (
 
 // CreateOrUpdateConfigMaps creates or updates ConfigMaps in the specified namespaces based on the MultiTenantConfig spec.
 // For example, if EnableCertificateConfigMapCreation is true, it creates or updates a ConfigMap named "user-ca-bundle" in each tenant namespace with the appropriate labels and ownership reference to the MultiTenantConfig.
-func CreateOrUpdateConfigMaps(ctx context.Context, client client.Client, mtc *tenantv1alpha1.MultiTenantConfig, namespaces []string) error {
+func CreateOrUpdateConfigMaps(ctx context.Context, cl client.Client, mtc *tenantv1alpha1.MultiTenantConfig, namespaces []string) error {
 	if !mtc.Spec.ConfigSpec.EnableCertificateConfigMapCreation {
 		return nil
 	}
 
 	for _, namespace := range namespaces {
-		if err := createOrUpdateConfigMap(ctx, client, mtc, namespace); err != nil {
+		if err := createOrUpdateConfigMap(ctx, cl, mtc, namespace); err != nil {
 			return err
 		}
 	}
@@ -26,7 +26,7 @@ func CreateOrUpdateConfigMaps(ctx context.Context, client client.Client, mtc *te
 }
 
 // createOrUpdateConfigMap creates or updates a ConfigMap with the specified name and namespace, and sets the appropriate labels and ownership reference to the MultiTenantConfig.
-func createOrUpdateConfigMap(ctx context.Context, client client.Client, mtc *tenantv1alpha1.MultiTenantConfig, namespace string) error {
+func createOrUpdateConfigMap(ctx context.Context, cl client.Client, mtc *tenantv1alpha1.MultiTenantConfig, namespace string) error {
 	configMap := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "user-ca-bundle",
@@ -34,7 +34,7 @@ func createOrUpdateConfigMap(ctx context.Context, client client.Client, mtc *ten
 		},
 	}
 
-	_, err := controllerutil.CreateOrUpdate(ctx, client, configMap, func() error {
+	_, err := controllerutil.CreateOrUpdate(ctx, cl, configMap, func() error {
 		if configMap.Labels == nil {
 			configMap.Labels = map[string]string{}
 		}
@@ -44,7 +44,7 @@ func createOrUpdateConfigMap(ctx context.Context, client client.Client, mtc *ten
 		configMap.Labels["config.openshift.io/inject-trusted-cabundle"] = trueKeyValue
 
 		// set ownership reference to the MultiTenantConfig
-		if err := controllerutil.SetControllerReference(mtc, configMap, client.Scheme()); err != nil {
+		if err := controllerutil.SetControllerReference(mtc, configMap, cl.Scheme()); err != nil {
 			return err
 		}
 		return nil

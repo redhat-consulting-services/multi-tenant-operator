@@ -13,19 +13,19 @@ import (
 )
 
 // CreateOrUpdateResourceQuotas creates or updates ResourceQuotas in the specified namespaces based on the provided MultiTenantConfig and NamespaceResourceQuota spec. It returns an error if any operation fails.
-func CreateOrUpdateResourceQuotas(ctx context.Context, client client.Client, mtc *tenantv1alpha1.MultiTenantConfig, rqSpec *tenantconfigv1alpha1.NamespaceResourceQuota, namespaces []string) error {
+func CreateOrUpdateResourceQuotas(ctx context.Context, cl client.Client, mtc *tenantv1alpha1.MultiTenantConfig, rqSpec *tenantconfigv1alpha1.NamespaceResourceQuota, namespaces []string) error {
 	if mtc.Spec.ResourceQuotaReference == "" {
 		return nil
 	}
 	for _, ns := range namespaces {
-		if err := createOrUpdateResourceQuota(ctx, client, mtc, rqSpec, ns); err != nil {
+		if err := createOrUpdateResourceQuota(ctx, cl, mtc, rqSpec, ns); err != nil {
 			return fmt.Errorf("failed to create or update ResourceQuota in namespace %s: %w", ns, err)
 		}
 	}
 	return nil
 }
 
-func createOrUpdateResourceQuota(ctx context.Context, client client.Client, mtc *tenantv1alpha1.MultiTenantConfig, rqSpec *tenantconfigv1alpha1.NamespaceResourceQuota, namespace string) error {
+func createOrUpdateResourceQuota(ctx context.Context, cl client.Client, mtc *tenantv1alpha1.MultiTenantConfig, rqSpec *tenantconfigv1alpha1.NamespaceResourceQuota, namespace string) error {
 	resourceQuota := &corev1.ResourceQuota{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "tenant-resource-quota",
@@ -33,7 +33,7 @@ func createOrUpdateResourceQuota(ctx context.Context, client client.Client, mtc 
 		},
 	}
 
-	_, err := controllerutil.CreateOrUpdate(ctx, client, resourceQuota, func() error {
+	_, err := controllerutil.CreateOrUpdate(ctx, cl, resourceQuota, func() error {
 		if resourceQuota.Labels == nil {
 			resourceQuota.Labels = map[string]string{}
 		}
@@ -45,7 +45,7 @@ func createOrUpdateResourceQuota(ctx context.Context, client client.Client, mtc 
 		resourceQuota.Spec.Hard = rqSpec.Spec.Hard
 
 		// set ownership reference to the MultiTenantConfig
-		if err := controllerutil.SetControllerReference(mtc, resourceQuota, client.Scheme()); err != nil {
+		if err := controllerutil.SetControllerReference(mtc, resourceQuota, cl.Scheme()); err != nil {
 			return err
 		}
 		return nil

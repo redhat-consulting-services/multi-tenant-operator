@@ -12,7 +12,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-func CreateOrUpdateNamespaces(ctx context.Context, client client.Client, mtc *tenantv1alpha1.MultiTenantConfig) ([]string, error) {
+func CreateOrUpdateNamespaces(ctx context.Context, cl client.Client, mtc *tenantv1alpha1.MultiTenantConfig) ([]string, error) {
 	var namespaceNames []string
 	for _, ns := range mtc.Spec.Namespaces {
 		if ns.Name == "" {
@@ -25,7 +25,7 @@ func CreateOrUpdateNamespaces(ctx context.Context, client client.Client, mtc *te
 		}
 		namespaceNames = append(namespaceNames, namespaceName)
 
-		_, err := controllerutil.CreateOrUpdate(ctx, client, namespace, func() error {
+		_, err := controllerutil.CreateOrUpdate(ctx, cl, namespace, func() error {
 			// labels
 			if namespace.Labels == nil {
 				namespace.Labels = map[string]string{}
@@ -59,7 +59,7 @@ func CreateOrUpdateNamespaces(ctx context.Context, client client.Client, mtc *te
 			}
 
 			// owner reference
-			if err := controllerutil.SetControllerReference(mtc, namespace, client.Scheme()); err != nil {
+			if err := controllerutil.SetControllerReference(mtc, namespace, cl.Scheme()); err != nil {
 				return err
 			}
 			return nil

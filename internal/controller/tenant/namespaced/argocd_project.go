@@ -29,7 +29,7 @@ func CreateOrUpdateArgoCDProject(ctx context.Context, cl client.Client, mtc *ten
 	return createOrUpdateArgoCDProject(ctx, cl, mtc, namespaces)
 }
 
-func createOrUpdateArgoCDProject(ctx context.Context, client client.Client, mtc *tenantv1alpha1.MultiTenantConfig, namespaces []string) error {
+func createOrUpdateArgoCDProject(ctx context.Context, cl client.Client, mtc *tenantv1alpha1.MultiTenantConfig, namespaces []string) error {
 	argoCDProject := &argocdv1alpha1.AppProject{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      getGeneratedName(*mtc, mtc.Spec.ArgoCD.Project.Name),
@@ -37,7 +37,7 @@ func createOrUpdateArgoCDProject(ctx context.Context, client client.Client, mtc 
 		},
 	}
 
-	_, err := controllerutil.CreateOrUpdate(ctx, client, argoCDProject, func() error {
+	_, err := controllerutil.CreateOrUpdate(ctx, cl, argoCDProject, func() error {
 		if argoCDProject.Labels == nil {
 			argoCDProject.Labels = map[string]string{}
 		}
@@ -62,7 +62,7 @@ func createOrUpdateArgoCDProject(ctx context.Context, client client.Client, mtc 
 		argoCDProject.Spec.DestinationServiceAccounts = mtc.Spec.ArgoCD.Project.DestinationServiceAccounts
 
 		// set ownership reference to the MultiTenantConfig
-		if err := controllerutil.SetControllerReference(mtc, argoCDProject, client.Scheme()); err != nil {
+		if err := controllerutil.SetControllerReference(mtc, argoCDProject, cl.Scheme()); err != nil {
 			return err
 		}
 		return nil

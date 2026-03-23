@@ -12,19 +12,19 @@ import (
 )
 
 // CreateOrUpdateLimitRanges creates or updates LimitRanges in the specified namespaces based on the provided MultiTenantConfig and NamespaceLimitRange spec. It returns an error if any operation fails.
-func CreateOrUpdateLimitRanges(ctx context.Context, client client.Client, mtc *tenantv1alpha1.MultiTenantConfig, limitRangeSpec *tenantconfigv1alpha1.NamespaceLimitRange, namespaces []string) error {
+func CreateOrUpdateLimitRanges(ctx context.Context, cl client.Client, mtc *tenantv1alpha1.MultiTenantConfig, limitRangeSpec *tenantconfigv1alpha1.NamespaceLimitRange, namespaces []string) error {
 	if mtc.Spec.LimitRangeReference == "" {
 		return nil
 	}
 	for _, namespace := range namespaces {
-		if err := createOrUpdateLimitRange(ctx, client, mtc, limitRangeSpec, namespace); err != nil {
+		if err := createOrUpdateLimitRange(ctx, cl, mtc, limitRangeSpec, namespace); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func createOrUpdateLimitRange(ctx context.Context, client client.Client, mtc *tenantv1alpha1.MultiTenantConfig, limitRangeSpec *tenantconfigv1alpha1.NamespaceLimitRange, namespace string) error {
+func createOrUpdateLimitRange(ctx context.Context, cl client.Client, mtc *tenantv1alpha1.MultiTenantConfig, limitRangeSpec *tenantconfigv1alpha1.NamespaceLimitRange, namespace string) error {
 	limitRange := &corev1.LimitRange{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "tenant-limit-range",
@@ -32,7 +32,7 @@ func createOrUpdateLimitRange(ctx context.Context, client client.Client, mtc *te
 		},
 	}
 
-	_, err := controllerutil.CreateOrUpdate(ctx, client, limitRange, func() error {
+	_, err := controllerutil.CreateOrUpdate(ctx, cl, limitRange, func() error {
 		if limitRange.Labels == nil {
 			limitRange.Labels = map[string]string{}
 		}
@@ -44,7 +44,7 @@ func createOrUpdateLimitRange(ctx context.Context, client client.Client, mtc *te
 		limitRange.Spec.Limits = limitRangeSpec.Spec.Limits
 
 		// set ownership reference to the MultiTenantConfig
-		if err := controllerutil.SetControllerReference(mtc, limitRange, client.Scheme()); err != nil {
+		if err := controllerutil.SetControllerReference(mtc, limitRange, cl.Scheme()); err != nil {
 			return err
 		}
 		return nil
