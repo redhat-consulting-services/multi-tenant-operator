@@ -55,7 +55,7 @@ func CreateOrUpdateNamespaces(ctx context.Context, cl client.Client, mtc *tenant
 				if err != nil {
 					return fmt.Errorf("failed to marshal ACL logging config: %w", err)
 				}
-				namespace.Labels["k8s.ovn.org/acl-logging"] = string(btc)
+				namespace.Annotations["k8s.ovn.org/acl-logging"] = string(btc)
 			}
 
 			// owner reference
