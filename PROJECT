@@ -14,7 +14,7 @@ repo: github.com/redhat-consulting-services/multi-tenant-operator
 resources:
 - api:
     crdVersion: v1
-    namespaced: true
+    namespaced: false
   controller: false
   domain: openshift.io
   group: tenantconfig
@@ -23,7 +23,7 @@ resources:
   version: v1alpha1
 - api:
     crdVersion: v1
-    namespaced: true
+    namespaced: false
   controller: false
   domain: openshift.io
   group: tenantconfig
@@ -32,7 +32,7 @@ resources:
   version: v1alpha1
 - api:
     crdVersion: v1
-    namespaced: true
+    namespaced: false
   controller: true
   domain: openshift.io
   group: tenant

@@ -14,7 +14,7 @@ spec:
     shortNames:
     - nlr
     singular: namespacelimitrange
-  scope: Namespaced
+  scope: Cluster
   versions:
   - additionalPrinterColumns:
     - jsonPath: .status.limitItems

@@ -36,7 +36,7 @@ type NamespaceResourceQuotaStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-// +kubebuilder:resource:shortName=nrq
+// +kubebuilder:resource:scope=Cluster,shortName=nrq
 // +kubebuilder:printcolumn:name="HardItems",type="integer",JSONPath=".status.hardItems"
 
 // NamespaceResourceQuota is the Schema for the namespaceresourcequotas API.
