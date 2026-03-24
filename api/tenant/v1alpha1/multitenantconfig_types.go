@@ -22,9 +22,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 // MultiTenantConfigSpec defines the desired state of MultiTenantConfig.
 type MultiTenantConfigSpec struct {
 	// ArgoCD contains the configuration for Argo CD integration in the multi-tenant environment.
@@ -90,6 +87,7 @@ type ArgoCDSpec struct {
 	// +kubebuilder:default:=openshift-gitops
 	InstanceNamespace string `json:"instanceNamespace,omitempty"`
 	// Project contains the Argo CD project configuration to be applied to tenant namespaces. If not specified, no Argo CD project will be created.
+	// +kubebuilder:validation:Optional
 	Project *ArgoCDProjectSpec `json:"project,omitempty"`
 }
 

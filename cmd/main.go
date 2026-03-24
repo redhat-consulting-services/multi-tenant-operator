@@ -40,6 +40,8 @@ import (
 	tenantv1alpha1 "github.com/redhat-consulting-services/multi-tenant-operator/api/tenant/v1alpha1"
 	tenantconfigv1alpha1 "github.com/redhat-consulting-services/multi-tenant-operator/api/tenantconfig/v1alpha1"
 	tenantcontroller "github.com/redhat-consulting-services/multi-tenant-operator/internal/controller/tenant"
+
+	argocdv1alpha1 "github.com/argoproj/argo-cd/v3/pkg/apis/application/v1alpha1"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -53,6 +55,10 @@ func init() {
 
 	utilruntime.Must(tenantconfigv1alpha1.AddToScheme(scheme))
 	utilruntime.Must(tenantv1alpha1.AddToScheme(scheme))
+
+	// third party APIs
+	utilruntime.Must(argocdv1alpha1.AddToScheme(scheme))
+
 	// +kubebuilder:scaffold:scheme
 }
 
