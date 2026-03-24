@@ -168,7 +168,7 @@ type MultiTenantConfigStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-// +kubebuilder:resource:shortName=mtc
+// +kubebuilder:resource:scope=Cluster,shortName=mtc
 // +kubebuilder:printcolumn:name="Managed Namespaces",type="integer",JSONPath=".status.managedNamespaceCount"
 // +kubebuilder:printcolumn:name="Quota Reference",type="string",JSONPath=".status.quotaReference"
 // +kubebuilder:printcolumn:name="LimitRange Reference",type="string",JSONPath=".status.limitRangeReference"
