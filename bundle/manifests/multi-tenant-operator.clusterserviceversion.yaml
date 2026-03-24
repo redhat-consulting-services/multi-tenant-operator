@@ -65,7 +65,22 @@ spec:
     - kind: NamespaceResourceQuota
       name: namespaceresourcequotas.tenantconfig.openshift.io
       version: v1alpha1
-  description: asd
+  description: |
+    # multi-tenant-operator
+
+    multi-tenant-operator is a Kubernetes operator that automates the provisioning and lifecycle management of tenant namespaces on OpenShift clusters. It enforces consistent resource quotas, limit ranges, RBAC role bindings, network policies, and Argo CD project configurations across all namespaces belonging to a tenant, using a single `MultiTenantConfig` custom resource.
+
+    ## Description
+
+    multi-tenant-operator is built with [operator-sdk](https://sdk.operatorframework.io/) and manages three custom resource kinds:
+
+    - **`MultiTenantConfig`** (`tenant.openshift.io/v1alpha1`) — the central configuration object for a tenant. It declares which namespaces belong to the tenant and references a `NamespaceResourceQuota` and/or `NamespaceLimitRange` to be applied to them. It also controls optional per-namespace features such as OVN audit logging, user workload monitoring, OpenShift TLS certificate ConfigMap injection, Argo CD project creation, and RBAC role bindings. Configuration flags can be set globally for all namespaces and overridden on a per-namespace basis.
+
+    - **`NamespaceResourceQuota`** (`tenantconfig.openshift.io/v1alpha1`, short name `nrq`) — a cluster-scoped template that wraps a standard Kubernetes `ResourceQuota` spec. The operator applies it as a `ResourceQuota` to every namespace managed by a referencing `MultiTenantConfig`.
+
+    - **`NamespaceLimitRange`** (`tenantconfig.openshift.io/v1alpha1`, short name `nlr`) — a cluster-scoped template that wraps a standard Kubernetes `LimitRange` spec. The operator applies it as a `LimitRange` to every namespace managed by a referencing `MultiTenantConfig`.
+
+    When a `MultiTenantConfig` is created or updated, the operator reconciles the desired state by creating or updating namespaces, resource quotas, limit ranges, role bindings, config maps (e.g. the OpenShift CA bundle), and Argo CD `AppProject` resources as needed.
   displayName: multi-tenant-operator
   icon:
   - base64data: ""
