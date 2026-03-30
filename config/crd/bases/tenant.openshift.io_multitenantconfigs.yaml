@@ -416,6 +416,24 @@ spec:
                       append a suffix to resource names for tenant namespaces. If
                       not specified, it defaults to false.
                     type: boolean
+                  enableNetworkPolicyEgressDenyAll:
+                    default: false
+                    description: |-
+                      EnableNetworkPolicyEgressDenyAll determines whether the operator should create a default NetworkPolicy that denies all egress traffic from pods in tenant namespaces.
+                      If not specified, it defaults to false.
+                    type: boolean
+                  enableNetworkPolicyIngressDenyAll:
+                    default: false
+                    description: |-
+                      EnableNetworkPolicyIngressDenyAll determines whether the operator should create a default NetworkPolicy that denies all ingress traffic to pods in tenant namespaces.
+                      If not specified, it defaults to false.
+                    type: boolean
+                  enableNetworkPolicyTenantInternalAllow:
+                    default: false
+                    description: |-
+                      EnableNetworkPolicyTenantInternalAllow determines whether the operator should create a NetworkPolicy that allows all traffic between pods part of the same tenant (across namespaces).
+                      If not specified, it defaults to false.
+                    type: boolean
                   enableUserWorkloadMonitoring:
                     default: false
                     description: |-
@@ -472,6 +490,24 @@ spec:
                           default: false
                           description: EnableNameSuffix indicates whether the operator
                             should append a suffix to resource names for tenant namespaces.
+                            If not specified, it defaults to false.
+                          type: boolean
+                        enableNetworkPolicyEgressDenyAll:
+                          default: false
+                          description: |-
+                            EnableNetworkPolicyEgressDenyAll determines whether the operator should create a default NetworkPolicy that denies all egress traffic from pods in tenant namespaces.
+                            If not specified, it defaults to false.
+                          type: boolean
+                        enableNetworkPolicyIngressDenyAll:
+                          default: false
+                          description: |-
+                            EnableNetworkPolicyIngressDenyAll determines whether the operator should create a default NetworkPolicy that denies all ingress traffic to pods in tenant namespaces.
+                            If not specified, it defaults to false.
+                          type: boolean
+                        enableNetworkPolicyTenantInternalAllow:
+                          default: false
+                          description: |-
+                            EnableNetworkPolicyTenantInternalAllow determines whether the operator should create a NetworkPolicy that allows all traffic between pods part of the same tenant (across namespaces).
                             If not specified, it defaults to false.
                           type: boolean
                         enableUserWorkloadMonitoring:

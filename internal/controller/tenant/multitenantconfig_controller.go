@@ -47,6 +47,7 @@ type MultiTenantConfigReconciler struct {
 // +kubebuilder:rbac:groups=core,resources=limitranges,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=resourcequotas,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=rolebindings,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=networking.k8s.io,resources=networkpolicies,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=argoproj.io,resources=appprojects,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
@@ -117,6 +118,13 @@ func (r *MultiTenantConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	err = namespaced.CreateOrUpdateRoleBindings(ctx, r.Client, mtc, namespaces)
 	if err != nil {
 		log.Error(err, "Failed to create or update RoleBindings in tenant namespaces")
+		return ctrl.Result{}, err
+	}
+
+	// create or update NetworkPolicies in tenant namespaces based on the MultiTenantConfig spec
+	err = namespaced.CreateOrUpdateNetworkPolicies(ctx, r.Client, mtc, namespaces)
+	if err != nil {
+		log.Error(err, "Failed to create or update NetworkPolicies in tenant namespaces")
 		return ctrl.Result{}, err
 	}
 

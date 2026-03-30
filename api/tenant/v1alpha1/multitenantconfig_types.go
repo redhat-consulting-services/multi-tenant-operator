@@ -71,6 +71,18 @@ type ConfigSpec struct {
 	// EnableNamePrefix indicates whether the operator should prepend a prefix to resource names for tenant namespaces. If not specified, it defaults to false.
 	// +kubebuilder:default:=false
 	EnableNamePrefix bool `json:"enableNamePrefix,omitempty"`
+	// EnableNetworkPolicyIngressDenyAll determines whether the operator should create a default NetworkPolicy that denies all ingress traffic to pods in tenant namespaces.
+	// If not specified, it defaults to false.
+	// +kubebuilder:default:=false
+	EnableNetworkPolicyIngressDenyAll bool `json:"enableNetworkPolicyIngressDenyAll,omitempty"`
+	// EnableNetworkPolicyEgressDenyAll determines whether the operator should create a default NetworkPolicy that denies all egress traffic from pods in tenant namespaces.
+	// If not specified, it defaults to false.
+	// +kubebuilder:default:=false
+	EnableNetworkPolicyEgressDenyAll bool `json:"enableNetworkPolicyEgressDenyAll,omitempty"`
+	// EnableNetworkPolicyTenantInternalAllow determines whether the operator should create a NetworkPolicy that allows all traffic between pods part of the same tenant (across namespaces).
+	// If not specified, it defaults to false.
+	// +kubebuilder:default:=false
+	EnableNetworkPolicyTenantInternalAllow bool `json:"enableNetworkPolicyTenantInternalAllow,omitempty"`
 }
 
 type RoleBindingSpec struct {
