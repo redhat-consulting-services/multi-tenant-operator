@@ -42,10 +42,10 @@ metadata:
         }
       ]
     capabilities: Basic Install
-    createdAt: "2026-03-27T20:36:36Z"
+    createdAt: "2026-03-30T13:04:54Z"
     operators.operatorframework.io/builder: operator-sdk-v1.42.2
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v4
-  name: multi-tenant-operator.v0.1.3
+  name: multi-tenant-operator.v0.2.0
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -108,6 +108,18 @@ spec:
           - argoproj.io
           resources:
           - appprojects
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - networking.k8s.io
+          resources:
+          - networkpolicies
           verbs:
           - create
           - delete
@@ -304,4 +316,4 @@ spec:
   provider:
     name: redhat-consulting-services
     url: https://github.com/redhat-consulting-services
-  version: 0.1.3
+  version: 0.2.0
