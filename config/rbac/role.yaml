@@ -85,7 +85,7 @@ rules:
   - tenantconfig.openshift.io
   resources:
   - namespacelimitranges
-  - namespaceresourcequotalists
+  - namespaceresourcequotas
   verbs:
   - get
   - list
