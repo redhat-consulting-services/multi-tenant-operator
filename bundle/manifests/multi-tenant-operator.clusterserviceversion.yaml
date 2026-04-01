@@ -42,11 +42,11 @@ metadata:
         }
       ]
     capabilities: Basic Install
-    createdAt: "2026-03-30T13:04:54Z"
+    createdAt: "2026-03-31T15:04:00Z"
     operators.operatorframework.io/builder: operator-sdk-v1.42.2
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v4
-  name: multi-tenant-operator.v0.2.0
-  namespace: placeholder
+  name: multi-tenant-operator.v0.2.1
+  namespace: multi-tenant-operator
 spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
@@ -170,7 +170,7 @@ spec:
           - tenantconfig.openshift.io
           resources:
           - namespacelimitranges
-          - namespaceresourcequotalists
+          - namespaceresourcequotas
           verbs:
           - get
           - list
@@ -286,7 +286,7 @@ spec:
   installModes:
   - supported: true
     type: OwnNamespace
-  - supported: true
+  - supported: false
     type: SingleNamespace
   - supported: false
     type: MultiNamespace
@@ -316,4 +316,4 @@ spec:
   provider:
     name: redhat-consulting-services
     url: https://github.com/redhat-consulting-services
-  version: 0.2.0
+  version: 0.2.1
