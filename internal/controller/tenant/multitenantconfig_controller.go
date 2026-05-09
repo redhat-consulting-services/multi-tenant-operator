@@ -78,6 +78,16 @@ func (r *MultiTenantConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		}
 	}
 
+	// get namespace resource quota spec if reference is set in MultiTenantConfig
+	nrr := &tenantconfigv1alpha1.NamespaceResourceQuota{}
+	if mtc.Spec.ResourceQuotaReference != "" {
+		err = r.Get(ctx, client.ObjectKey{Name: mtc.Spec.ResourceQuotaReference}, nrr)
+		if err != nil {
+			log.Error(err, "Failed to get NamespaceResourceQuota")
+			return ctrl.Result{}, err
+		}
+	}
+
 	for _, ns := range namespaces {
 		clog := log.WithValues("mtcName", mtc.GetName(), "namespace", ns)
 		clog.Info("Ensuring all components exist in namespace")
@@ -90,28 +100,20 @@ func (r *MultiTenantConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 		// create or update limit range in namespace
 		if mtc.Spec.LimitRangeReference != "" {
-			// create or update LimitRanges in tenant namespaces based on the MultiTenantConfig spec
 			err = namespaced.CreateOrUpdateLimitRange(ctx, r.Client, mtc, nlr, ns)
 			if err != nil {
 				log.Error(err, "Failed to create or update LimitRanges in tenant namespaces")
 				return ctrl.Result{}, err
 			}
 		}
-	}
 
-	if mtc.Spec.ResourceQuotaReference != "" {
-		nrr := &tenantconfigv1alpha1.NamespaceResourceQuota{}
-		err = r.Get(ctx, client.ObjectKey{Name: mtc.Spec.ResourceQuotaReference}, nrr)
-		if err != nil {
-			log.Error(err, "Failed to get NamespaceResourceQuota")
-			return ctrl.Result{}, err
-		}
-
-		// create or update ResourceQuotas in tenant namespaces based on the MultiTenantConfig spec
-		err = namespaced.CreateOrUpdateResourceQuotas(ctx, r.Client, mtc, nrr, namespaces)
-		if err != nil {
-			log.Error(err, "Failed to create or update ResourceQuotas in tenant namespaces")
-			return ctrl.Result{}, err
+		// create or update resource quota in namespace
+		if mtc.Spec.ResourceQuotaReference != "" {
+			err = namespaced.CreateOrUpdateResourceQuota(ctx, r.Client, mtc, nrr, ns)
+			if err != nil {
+				log.Error(err, "Failed to create or update ResourceQuotas in tenant namespaces")
+				return ctrl.Result{}, err
+			}
 		}
 	}
 
