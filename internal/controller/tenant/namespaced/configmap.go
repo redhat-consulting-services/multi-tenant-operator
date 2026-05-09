@@ -10,23 +10,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-// CreateOrUpdateConfigMaps creates or updates ConfigMaps in the specified namespaces based on the MultiTenantConfig spec.
-// For example, if EnableCertificateConfigMapCreation is true, it creates or updates a ConfigMap named "user-ca-bundle" in each tenant namespace with the appropriate labels and ownership reference to the MultiTenantConfig.
-func CreateOrUpdateConfigMaps(ctx context.Context, cl client.Client, mtc *tenantv1alpha1.MultiTenantConfig, namespaces []string) error {
-	if !mtc.Spec.ConfigSpec.EnableCertificateConfigMapCreation {
-		return nil
-	}
-
-	for _, namespace := range namespaces {
-		if err := createOrUpdateConfigMap(ctx, cl, mtc, namespace); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// createOrUpdateConfigMap creates or updates a ConfigMap with the specified name and namespace, and sets the appropriate labels and ownership reference to the MultiTenantConfig.
-func createOrUpdateConfigMap(ctx context.Context, cl client.Client, mtc *tenantv1alpha1.MultiTenantConfig, namespace string) error {
+// CreateOrUpdateConfigMap creates or updates a ConfigMap with the specified name and namespace, and sets the appropriate labels and ownership reference to the MultiTenantConfig.
+func CreateOrUpdateConfigMap(ctx context.Context, cl client.Client, mtc *tenantv1alpha1.MultiTenantConfig, namespace string) error {
 	configMap := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "user-ca-bundle",

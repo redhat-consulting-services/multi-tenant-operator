@@ -52,13 +52,6 @@ type MultiTenantConfigReconciler struct {
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the MultiTenantConfig object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
-//
-// For more details, check Reconcile and its Result here:
-// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.21.0/pkg/reconcile
 func (r *MultiTenantConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := logf.FromContext(ctx)
 
@@ -75,11 +68,15 @@ func (r *MultiTenantConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, err
 	}
 
-	// create or update ConfigMaps in tenant namespaces based on the MultiTenantConfig spec
-	err = namespaced.CreateOrUpdateConfigMaps(ctx, r.Client, mtc, namespaces)
-	if err != nil {
-		log.Error(err, "Failed to create or update ConfigMaps in tenant namespaces")
-		return ctrl.Result{}, err
+	for _, ns := range namespaces {
+		clog := log.WithValues("mtcName", mtc.GetName(), "namespace", ns)
+		clog.Info("Ensuring all components exist in namespace")
+
+		err = namespaced.CreateOrUpdateConfigMap(ctx, r.Client, mtc, ns)
+		if err != nil {
+			clog.Error(err, "Failed to create or update ConfigMap in namespace", "namespace", ns)
+			return ctrl.Result{}, err
+		}
 	}
 
 	if mtc.Spec.LimitRangeReference != "" {
