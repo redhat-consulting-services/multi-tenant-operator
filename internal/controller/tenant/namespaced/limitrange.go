@@ -11,20 +11,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-// CreateOrUpdateLimitRanges creates or updates LimitRanges in the specified namespaces based on the provided MultiTenantConfig and NamespaceLimitRange spec. It returns an error if any operation fails.
-func CreateOrUpdateLimitRanges(ctx context.Context, cl client.Client, mtc *tenantv1alpha1.MultiTenantConfig, limitRangeSpec *tenantconfigv1alpha1.NamespaceLimitRange, namespaces []string) error {
-	if mtc.Spec.LimitRangeReference == "" {
-		return nil
-	}
-	for _, namespace := range namespaces {
-		if err := createOrUpdateLimitRange(ctx, cl, mtc, limitRangeSpec, namespace); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func createOrUpdateLimitRange(ctx context.Context, cl client.Client, mtc *tenantv1alpha1.MultiTenantConfig, limitRangeSpec *tenantconfigv1alpha1.NamespaceLimitRange, namespace string) error {
+// CreateOrUpdateLimitRange creates or updates a LimitRange with the specified name and namespace, and sets the appropriate labels and ownership reference to the MultiTenantConfig.
+func CreateOrUpdateLimitRange(ctx context.Context, cl client.Client, mtc *tenantv1alpha1.MultiTenantConfig, limitRangeSpec *tenantconfigv1alpha1.NamespaceLimitRange, namespace string) error {
 	limitRange := &corev1.LimitRange{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "tenant-limit-range",

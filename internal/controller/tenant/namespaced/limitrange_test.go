@@ -30,7 +30,8 @@ func TestCreateOrUpdateLimitRangesSkipsWhenReferenceNotSet(t *testing.T) {
 	}
 	limitRangeSpec := &tenantconfigv1alpha1.NamespaceLimitRange{}
 
-	err := CreateOrUpdateLimitRanges(context.Background(), cl, mtc, limitRangeSpec, []string{"ns-a", "ns-b"})
+	namespace := "team-a"
+	err := CreateOrUpdateLimitRange(context.Background(), cl, mtc, limitRangeSpec, namespace)
 	if err != nil {
 		t.Fatalf("CreateOrUpdateLimitRanges returned error: %v", err)
 	}
@@ -78,47 +79,46 @@ func TestCreateOrUpdateLimitRangesCreatesPerNamespace(t *testing.T) {
 		},
 	}
 
-	err := CreateOrUpdateLimitRanges(context.Background(), cl, mtc, limitRangeSpec, []string{"team-a", "team-b"})
+	namespace := "team-a"
+	err := CreateOrUpdateLimitRange(context.Background(), cl, mtc, limitRangeSpec, namespace)
 	if err != nil {
 		t.Fatalf("CreateOrUpdateLimitRanges returned error: %v", err)
 	}
 
-	for _, namespace := range []string{"team-a", "team-b"} {
-		lr := &corev1.LimitRange{}
-		if err := cl.Get(context.Background(), client.ObjectKey{Namespace: namespace, Name: "tenant-limit-range"}, lr); err != nil {
-			t.Fatalf("failed to get limitrange for namespace %q: %v", namespace, err)
-		}
+	lr := &corev1.LimitRange{}
+	if err := cl.Get(context.Background(), client.ObjectKey{Namespace: namespace, Name: "tenant-limit-range"}, lr); err != nil {
+		t.Fatalf("failed to get limitrange for namespace %q: %v", namespace, err)
+	}
 
-		if got := lr.Labels[managedNamespacetenantNameLabelKey]; got != tenantB {
-			t.Fatalf("tenant-name label mismatch for namespace %q: got %q, want %q", namespace, got, tenantB)
-		}
-		if got := lr.Labels[managedByLabelKey]; got != managedByLabelValue {
-			t.Fatalf("managed-by label mismatch for namespace %q: got %q, want %q", namespace, got, managedByLabelValue)
-		}
-		if got := lr.Labels[multiTenantConfigNameLabelKey]; got != tenantB {
-			t.Fatalf("multitenantconfig label mismatch for namespace %q: got %q, want %q", namespace, got, tenantB)
-		}
+	if got := lr.Labels[managedNamespacetenantNameLabelKey]; got != tenantB {
+		t.Fatalf("tenant-name label mismatch for namespace %q: got %q, want %q", namespace, got, tenantB)
+	}
+	if got := lr.Labels[managedByLabelKey]; got != managedByLabelValue {
+		t.Fatalf("managed-by label mismatch for namespace %q: got %q, want %q", namespace, got, managedByLabelValue)
+	}
+	if got := lr.Labels[multiTenantConfigNameLabelKey]; got != tenantB {
+		t.Fatalf("multitenantconfig label mismatch for namespace %q: got %q, want %q", namespace, got, tenantB)
+	}
 
-		if len(lr.Spec.Limits) != 1 {
-			t.Fatalf("expected one limit item for namespace %q, got %d", namespace, len(lr.Spec.Limits))
-		}
-		if lr.Spec.Limits[0].Type != corev1.LimitTypeContainer {
-			t.Fatalf("limit type mismatch for namespace %q: got %q", namespace, lr.Spec.Limits[0].Type)
-		}
-		if got := lr.Spec.Limits[0].Default.Cpu().String(); got != "100m" {
-			t.Fatalf("default cpu mismatch for namespace %q: got %q, want %q", namespace, got, "100m")
-		}
-		if got := lr.Spec.Limits[0].Min.Memory().String(); got != "128Mi" {
-			t.Fatalf("min memory mismatch for namespace %q: got %q, want %q", namespace, got, "128Mi")
-		}
+	if len(lr.Spec.Limits) != 1 {
+		t.Fatalf("expected one limit item for namespace %q, got %d", namespace, len(lr.Spec.Limits))
+	}
+	if lr.Spec.Limits[0].Type != corev1.LimitTypeContainer {
+		t.Fatalf("limit type mismatch for namespace %q: got %q", namespace, lr.Spec.Limits[0].Type)
+	}
+	if got := lr.Spec.Limits[0].Default.Cpu().String(); got != "100m" {
+		t.Fatalf("default cpu mismatch for namespace %q: got %q, want %q", namespace, got, "100m")
+	}
+	if got := lr.Spec.Limits[0].Min.Memory().String(); got != "128Mi" {
+		t.Fatalf("min memory mismatch for namespace %q: got %q, want %q", namespace, got, "128Mi")
+	}
 
-		if len(lr.OwnerReferences) != 1 {
-			t.Fatalf("expected one owner reference for namespace %q, got %d", namespace, len(lr.OwnerReferences))
-		}
-		ownerRef := lr.OwnerReferences[0]
-		if ownerRef.Kind != mtcKind || ownerRef.Name != tenantB {
-			t.Fatalf("owner reference mismatch for namespace %q: got kind=%q name=%q", namespace, ownerRef.Kind, ownerRef.Name)
-		}
+	if len(lr.OwnerReferences) != 1 {
+		t.Fatalf("expected one owner reference for namespace %q, got %d", namespace, len(lr.OwnerReferences))
+	}
+	ownerRef := lr.OwnerReferences[0]
+	if ownerRef.Kind != mtcKind || ownerRef.Name != tenantB {
+		t.Fatalf("owner reference mismatch for namespace %q: got kind=%q name=%q", namespace, ownerRef.Kind, ownerRef.Name)
 	}
 }
 
@@ -169,13 +169,14 @@ func TestCreateOrUpdateLimitRangesUpdatesExistingLimitRange(t *testing.T) {
 		},
 	}
 
-	err := CreateOrUpdateLimitRanges(context.Background(), cl, mtc, limitRangeSpec, []string{"team-c"})
+	namespace := "team-c"
+	err := CreateOrUpdateLimitRange(context.Background(), cl, mtc, limitRangeSpec, namespace)
 	if err != nil {
 		t.Fatalf("CreateOrUpdateLimitRanges returned error: %v", err)
 	}
 
 	updated := &corev1.LimitRange{}
-	if err := cl.Get(context.Background(), client.ObjectKey{Namespace: "team-c", Name: "tenant-limit-range"}, updated); err != nil {
+	if err := cl.Get(context.Background(), client.ObjectKey{Namespace: namespace, Name: "tenant-limit-range"}, updated); err != nil {
 		t.Fatalf("failed to get updated limitrange: %v", err)
 	}
 

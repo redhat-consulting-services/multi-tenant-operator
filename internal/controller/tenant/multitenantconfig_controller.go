@@ -68,6 +68,16 @@ func (r *MultiTenantConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, err
 	}
 
+	// get namespace limit range spec if reference is set in MultiTenantConfig
+	nlr := &tenantconfigv1alpha1.NamespaceLimitRange{}
+	if mtc.Spec.LimitRangeReference != "" {
+		err = r.Get(ctx, client.ObjectKey{Name: mtc.Spec.LimitRangeReference}, nlr)
+		if err != nil {
+			log.Error(err, "Failed to get NamespaceLimitRange")
+			return ctrl.Result{}, err
+		}
+	}
+
 	for _, ns := range namespaces {
 		clog := log.WithValues("mtcName", mtc.GetName(), "namespace", ns)
 		clog.Info("Ensuring all components exist in namespace")
@@ -77,21 +87,15 @@ func (r *MultiTenantConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			clog.Error(err, "Failed to create or update ConfigMap in namespace", "namespace", ns)
 			return ctrl.Result{}, err
 		}
-	}
 
-	if mtc.Spec.LimitRangeReference != "" {
-		nlr := &tenantconfigv1alpha1.NamespaceLimitRange{}
-		err = r.Get(ctx, client.ObjectKey{Name: mtc.Spec.LimitRangeReference}, nlr)
-		if err != nil {
-			log.Error(err, "Failed to get NamespaceLimitRange")
-			return ctrl.Result{}, err
-		}
-
-		// create or update LimitRanges in tenant namespaces based on the MultiTenantConfig spec
-		err = namespaced.CreateOrUpdateLimitRanges(ctx, r.Client, mtc, nlr, namespaces)
-		if err != nil {
-			log.Error(err, "Failed to create or update LimitRanges in tenant namespaces")
-			return ctrl.Result{}, err
+		// create or update limit range in namespace
+		if mtc.Spec.LimitRangeReference != "" {
+			// create or update LimitRanges in tenant namespaces based on the MultiTenantConfig spec
+			err = namespaced.CreateOrUpdateLimitRange(ctx, r.Client, mtc, nlr, ns)
+			if err != nil {
+				log.Error(err, "Failed to create or update LimitRanges in tenant namespaces")
+				return ctrl.Result{}, err
+			}
 		}
 	}
 
