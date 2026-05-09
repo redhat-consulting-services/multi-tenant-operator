@@ -28,7 +28,8 @@ func TestCreateOrUpdateRoleBindingsSkipsWhenNoRoleBindingsConfigured(t *testing.
 		ObjectMeta: metav1.ObjectMeta{Name: tenantA},
 	}
 
-	err := CreateOrUpdateRoleBindings(context.Background(), cl, mtc, []string{"ns-a", "ns-b"})
+	namespace := "team-a"
+	err := CreateOrUpdateRoleBinding(context.Background(), cl, mtc, namespace)
 	if err != nil {
 		t.Fatalf("CreateOrUpdateRoleBindings returned error: %v", err)
 	}
@@ -89,9 +90,10 @@ func TestCreateOrUpdateRoleBindingsCreatesPerNamespace(t *testing.T) {
 		},
 	}
 
-	err := CreateOrUpdateRoleBindings(context.Background(), cl, mtc, []string{"team-a", "team-b"})
+	namespace := "team-a"
+	err := CreateOrUpdateRoleBinding(context.Background(), cl, mtc, namespace)
 	if err != nil {
-		t.Fatalf("CreateOrUpdateRoleBindings returned error: %v", err)
+		t.Fatalf("CreateOrUpdateRoleBinding returned error: %v", err)
 	}
 
 	expected := map[string]tenantv1alpha1.RoleBindingSpec{}
@@ -99,37 +101,35 @@ func TestCreateOrUpdateRoleBindingsCreatesPerNamespace(t *testing.T) {
 		expected[rb.Name] = rb
 	}
 
-	for _, namespace := range []string{"team-a", "team-b"} {
-		for name, wantSpec := range expected {
-			rb := &rbacv1.RoleBinding{}
-			if err := cl.Get(context.Background(), client.ObjectKey{Namespace: namespace, Name: name}, rb); err != nil {
-				t.Fatalf("failed to get rolebinding %q for namespace %q: %v", name, namespace, err)
-			}
+	for name, wantSpec := range expected {
+		rb := &rbacv1.RoleBinding{}
+		if err := cl.Get(context.Background(), client.ObjectKey{Namespace: namespace, Name: name}, rb); err != nil {
+			t.Fatalf("failed to get rolebinding %q for namespace %q: %v", name, namespace, err)
+		}
 
-			if got := rb.Labels[managedNamespacetenantNameLabelKey]; got != tenantB {
-				t.Fatalf("tenant-name label mismatch for namespace %q and rolebinding %q: got %q, want %q", namespace, name, got, tenantB)
-			}
-			if got := rb.Labels[managedByLabelKey]; got != managedByLabelValue {
-				t.Fatalf("managed-by label mismatch for namespace %q and rolebinding %q: got %q, want %q", namespace, name, got, managedByLabelValue)
-			}
-			if got := rb.Labels[multiTenantConfigNameLabelKey]; got != tenantB {
-				t.Fatalf("multitenantconfig label mismatch for namespace %q and rolebinding %q: got %q, want %q", namespace, name, got, tenantB)
-			}
+		if got := rb.Labels[managedNamespacetenantNameLabelKey]; got != tenantB {
+			t.Fatalf("tenant-name label mismatch for namespace %q and rolebinding %q: got %q, want %q", namespace, name, got, tenantB)
+		}
+		if got := rb.Labels[managedByLabelKey]; got != managedByLabelValue {
+			t.Fatalf("managed-by label mismatch for namespace %q and rolebinding %q: got %q, want %q", namespace, name, got, managedByLabelValue)
+		}
+		if got := rb.Labels[multiTenantConfigNameLabelKey]; got != tenantB {
+			t.Fatalf("multitenantconfig label mismatch for namespace %q and rolebinding %q: got %q, want %q", namespace, name, got, tenantB)
+		}
 
-			if !reflect.DeepEqual(rb.RoleRef, wantSpec.RoleRef) {
-				t.Fatalf("roleref mismatch for namespace %q and rolebinding %q: got %#v, want %#v", namespace, name, rb.RoleRef, wantSpec.RoleRef)
-			}
-			if !reflect.DeepEqual(rb.Subjects, wantSpec.Subjects) {
-				t.Fatalf("subjects mismatch for namespace %q and rolebinding %q: got %#v, want %#v", namespace, name, rb.Subjects, wantSpec.Subjects)
-			}
+		if !reflect.DeepEqual(rb.RoleRef, wantSpec.RoleRef) {
+			t.Fatalf("roleref mismatch for namespace %q and rolebinding %q: got %#v, want %#v", namespace, name, rb.RoleRef, wantSpec.RoleRef)
+		}
+		if !reflect.DeepEqual(rb.Subjects, wantSpec.Subjects) {
+			t.Fatalf("subjects mismatch for namespace %q and rolebinding %q: got %#v, want %#v", namespace, name, rb.Subjects, wantSpec.Subjects)
+		}
 
-			if len(rb.OwnerReferences) != 1 {
-				t.Fatalf("expected one owner reference for namespace %q and rolebinding %q, got %d", namespace, name, len(rb.OwnerReferences))
-			}
-			ownerRef := rb.OwnerReferences[0]
-			if ownerRef.Kind != mtcKind || ownerRef.Name != tenantB {
-				t.Fatalf("owner reference mismatch for namespace %q and rolebinding %q: got kind=%q name=%q", namespace, name, ownerRef.Kind, ownerRef.Name)
-			}
+		if len(rb.OwnerReferences) != 1 {
+			t.Fatalf("expected one owner reference for namespace %q and rolebinding %q, got %d", namespace, name, len(rb.OwnerReferences))
+		}
+		ownerRef := rb.OwnerReferences[0]
+		if ownerRef.Kind != mtcKind || ownerRef.Name != tenantB {
+			t.Fatalf("owner reference mismatch for namespace %q and rolebinding %q: got kind=%q name=%q", namespace, name, ownerRef.Kind, ownerRef.Name)
 		}
 	}
 }
@@ -190,13 +190,14 @@ func TestCreateOrUpdateRoleBindingsUpdatesExistingRoleBinding(t *testing.T) {
 		},
 	}
 
-	err := CreateOrUpdateRoleBindings(context.Background(), cl, mtc, []string{"team-c"})
+	namespace := "team-c"
+	err := CreateOrUpdateRoleBinding(context.Background(), cl, mtc, namespace)
 	if err != nil {
 		t.Fatalf("CreateOrUpdateRoleBindings returned error: %v", err)
 	}
 
 	updated := &rbacv1.RoleBinding{}
-	if err := cl.Get(context.Background(), client.ObjectKey{Namespace: "team-c", Name: "access"}, updated); err != nil {
+	if err := cl.Get(context.Background(), client.ObjectKey{Namespace: namespace, Name: "access"}, updated); err != nil {
 		t.Fatalf("failed to get updated rolebinding: %v", err)
 	}
 
