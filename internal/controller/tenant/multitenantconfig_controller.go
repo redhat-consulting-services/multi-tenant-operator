@@ -122,13 +122,13 @@ func (r *MultiTenantConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			log.Error(err, "Failed to create or update RoleBindings in tenant namespaces")
 			return ctrl.Result{}, err
 		}
-	}
 
-	// create or update NetworkPolicies in tenant namespaces based on the MultiTenantConfig spec
-	err = namespaced.CreateOrUpdateNetworkPolicies(ctx, r.Client, mtc, namespaces)
-	if err != nil {
-		log.Error(err, "Failed to create or update NetworkPolicies in tenant namespaces")
-		return ctrl.Result{}, err
+		// create or update NetworkPolicies in tenant namespaces based on the MultiTenantConfig spec
+		err = namespaced.CreateOrUpdateNetworkPolicy(ctx, r.Client, mtc, ns)
+		if err != nil {
+			log.Error(err, "Failed to create or update NetworkPolicies in tenant namespaces")
+			return ctrl.Result{}, err
+		}
 	}
 
 	// create or update Argo CD AppProject in the Argo CD instance namespace based on the MultiTenantConfig spec
