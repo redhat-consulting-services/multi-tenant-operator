@@ -3,7 +3,7 @@ module github.com/redhat-consulting-services/multi-tenant-operator
 go 1.25.5
 
 require (
-	github.com/argoproj/argo-cd/v3 v3.3.6
+	github.com/argoproj/argo-cd/v3 v3.3.9
 	github.com/onsi/ginkgo/v2 v2.28.1
 	github.com/onsi/gomega v1.39.0
 	k8s.io/api v0.35.3
