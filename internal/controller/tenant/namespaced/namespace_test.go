@@ -15,6 +15,7 @@ import (
 
 var (
 	multiTenantConfigKind = mtcKind
+	customLabelValue      = "kept"
 )
 
 func TestCreateOrUpdateNamespacesCreatesNamespaces(t *testing.T) {
@@ -29,7 +30,7 @@ func TestCreateOrUpdateNamespacesCreatesNamespaces(t *testing.T) {
 	cl := fake.NewClientBuilder().WithScheme(scheme).Build()
 	mtc := &tenantv1alpha1.MultiTenantConfig{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        "example-mtc",
+			Name:        mtcName,
 			UID:         types.UID("f225581f-3644-40e2-a066-020f17a2f2c1"),
 			Labels:      map[string]string{"team": "platform"},
 			Annotations: map[string]string{"contact": "platform-team"},
@@ -52,8 +53,8 @@ func TestCreateOrUpdateNamespacesCreatesNamespaces(t *testing.T) {
 		t.Fatalf("managed-by label mismatch: got %q, want %q", got, managedByLabelValue)
 	}
 
-	if got := created.Labels[multiTenantConfigNameLabelKey]; got != "example-mtc" {
-		t.Fatalf("multitenantconfig label mismatch: got %q, want %q", got, "example-mtc")
+	if got := created.Labels[multiTenantConfigNameLabelKey]; got != mtcName {
+		t.Fatalf("multitenantconfig label mismatch: got %q, want %q", got, mtcName)
 	}
 
 	if got := created.Labels["team"]; got != "platform" {
@@ -69,8 +70,8 @@ func TestCreateOrUpdateNamespacesCreatesNamespaces(t *testing.T) {
 	}
 
 	ownerRef := created.OwnerReferences[0]
-	if ownerRef.Kind != multiTenantConfigKind || ownerRef.Name != "example-mtc" {
-		t.Fatalf("owner reference mismatch: got kind=%q name=%q want kind=%q name=%q", ownerRef.Kind, ownerRef.Name, multiTenantConfigKind, "example-mtc")
+	if ownerRef.Kind != multiTenantConfigKind || ownerRef.Name != mtcName {
+		t.Fatalf("owner reference mismatch: got kind=%q name=%q want kind=%q name=%q", ownerRef.Kind, ownerRef.Name, multiTenantConfigKind, mtcName)
 	}
 }
 
@@ -86,9 +87,9 @@ func TestCreateOrUpdateNamespacesUpdatesExistingNamespace(t *testing.T) {
 	existing := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   tenantB,
-			Labels: map[string]string{"custom": "kept", managedByLabelKey: "old-value"},
+			Labels: map[string]string{labelCustomKey: customLabelValue, managedByLabelKey: labelOldValue},
 			Annotations: map[string]string{
-				"existing": "kept",
+				"existing": customLabelValue,
 			},
 		},
 	}
@@ -96,7 +97,7 @@ func TestCreateOrUpdateNamespacesUpdatesExistingNamespace(t *testing.T) {
 	cl := fake.NewClientBuilder().WithScheme(scheme).WithObjects(existing).Build()
 	mtc := &tenantv1alpha1.MultiTenantConfig{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        "mtc-updated",
+			Name:        mtcName,
 			UID:         types.UID("8f813bd3-174f-471b-a8d1-f7734ea260d4"),
 			Labels:      map[string]string{"team": "tenant-ops"},
 			Annotations: map[string]string{"sla": "gold"},
@@ -115,7 +116,7 @@ func TestCreateOrUpdateNamespacesUpdatesExistingNamespace(t *testing.T) {
 		t.Fatalf("failed to get updated namespace: %v", err)
 	}
 
-	if got := updated.Labels["custom"]; got != "kept" {
+	if got := updated.Labels[labelCustomKey]; got != customLabelValue {
 		t.Fatalf("custom label should be preserved, got %q", got)
 	}
 
@@ -123,15 +124,15 @@ func TestCreateOrUpdateNamespacesUpdatesExistingNamespace(t *testing.T) {
 		t.Fatalf("managed-by label mismatch: got %q, want %q", got, managedByLabelValue)
 	}
 
-	if got := updated.Labels[multiTenantConfigNameLabelKey]; got != "mtc-updated" {
-		t.Fatalf("multitenantconfig label mismatch: got %q, want %q", got, "mtc-updated")
+	if got := updated.Labels[multiTenantConfigNameLabelKey]; got != mtcName {
+		t.Fatalf("multitenantconfig label mismatch: got %q, want %q", got, mtcName)
 	}
 
 	if got := updated.Labels["team"]; got != "tenant-ops" {
 		t.Fatalf("custom label mismatch: got %q, want %q", got, "tenant-ops")
 	}
 
-	if got := updated.Annotations["existing"]; got != "kept" {
+	if got := updated.Annotations["existing"]; got != customLabelValue {
 		t.Fatalf("existing annotation should be preserved, got %q", got)
 	}
 
@@ -144,7 +145,7 @@ func TestCreateOrUpdateNamespacesUpdatesExistingNamespace(t *testing.T) {
 	}
 
 	ownerRef := updated.OwnerReferences[0]
-	if ownerRef.Kind != multiTenantConfigKind || ownerRef.Name != "mtc-updated" {
+	if ownerRef.Kind != multiTenantConfigKind || ownerRef.Name != mtcName {
 		t.Fatalf("owner reference mismatch: got kind=%q name=%q", ownerRef.Kind, ownerRef.Name)
 	}
 }
@@ -160,7 +161,7 @@ func TestCreateOrUpdateNamespacesSkipsEmptyNamespaceNames(t *testing.T) {
 
 	cl := fake.NewClientBuilder().WithScheme(scheme).Build()
 	mtc := &tenantv1alpha1.MultiTenantConfig{
-		ObjectMeta: metav1.ObjectMeta{Name: "example-mtc"},
+		ObjectMeta: metav1.ObjectMeta{Name: mtcName},
 		Spec: tenantv1alpha1.MultiTenantConfigSpec{
 			Namespaces: []tenantv1alpha1.NamespaceSpec{{Name: ""}},
 		},

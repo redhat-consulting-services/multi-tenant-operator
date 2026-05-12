@@ -78,14 +78,14 @@ func TestCreateOrUpdateResourceQuotasCreatesPerNamespace(t *testing.T) {
 		},
 	}
 
-	namespace := "team-a"
+	namespace := tenantA
 	err := CreateOrUpdateResourceQuota(context.Background(), cl, mtc, rqSpec, namespace)
 	if err != nil {
 		t.Fatalf("CreateOrUpdateResourceQuotas returned error: %v", err)
 	}
 
 	rq := &corev1.ResourceQuota{}
-	if err := cl.Get(context.Background(), client.ObjectKey{Namespace: namespace, Name: "tenant-resource-quota"}, rq); err != nil {
+	if err := cl.Get(context.Background(), client.ObjectKey{Namespace: namespace, Name: resourceQuotaName}, rq); err != nil {
 		t.Fatalf("failed to get resourcequota for namespace %q: %v", namespace, err)
 	}
 
@@ -129,11 +129,11 @@ func TestCreateOrUpdateResourceQuotasUpdatesExistingResourceQuota(t *testing.T) 
 
 	existing := &corev1.ResourceQuota{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "tenant-resource-quota",
-			Namespace: "team-c",
+			Name:      resourceQuotaName,
+			Namespace: tenantC,
 			Labels: map[string]string{
-				"custom":          keepMe,
-				managedByLabelKey: "old-value",
+				labelCustomKey:    keepMe,
+				managedByLabelKey: labelOldValue,
 			},
 		},
 		Spec: corev1.ResourceQuotaSpec{
@@ -166,14 +166,14 @@ func TestCreateOrUpdateResourceQuotasUpdatesExistingResourceQuota(t *testing.T) 
 		},
 	}
 
-	namespace := "team-c"
+	namespace := tenantC
 	err := CreateOrUpdateResourceQuota(context.Background(), cl, mtc, rqSpec, namespace)
 	if err != nil {
 		t.Fatalf("CreateOrUpdateResourceQuotas returned error: %v", err)
 	}
 
 	updated := &corev1.ResourceQuota{}
-	if err := cl.Get(context.Background(), client.ObjectKey{Namespace: namespace, Name: "tenant-resource-quota"}, updated); err != nil {
+	if err := cl.Get(context.Background(), client.ObjectKey{Namespace: namespace, Name: resourceQuotaName}, updated); err != nil {
 		t.Fatalf("failed to get updated resourcequota: %v", err)
 	}
 

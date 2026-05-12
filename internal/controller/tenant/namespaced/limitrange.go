@@ -11,11 +11,20 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
+const (
+	limitRangeName = "tenant-limit-range"
+)
+
 // CreateOrUpdateLimitRange creates or updates a LimitRange with the specified name and namespace, and sets the appropriate labels and ownership reference to the MultiTenantConfig.
 func CreateOrUpdateLimitRange(ctx context.Context, cl client.Client, mtc *tenantv1alpha1.MultiTenantConfig, limitRangeSpec *tenantconfigv1alpha1.NamespaceLimitRange, namespace string) error {
+	if mtc.Spec.LimitRangeReference == "" || limitRangeSpec == nil {
+		// if no spec is provided, skip creating/updating the LimitRange
+		return nil
+	}
+
 	limitRange := &corev1.LimitRange{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "tenant-limit-range",
+			Name:      limitRangeName,
 			Namespace: namespace,
 		},
 	}

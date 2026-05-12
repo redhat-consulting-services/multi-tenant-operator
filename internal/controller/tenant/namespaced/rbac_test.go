@@ -14,6 +14,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
+const (
+	clusterRoleKind = "ClusterRole"
+	clusterRoleName = "access"
+)
+
 func TestCreateOrUpdateRoleBindingsSkipsWhenNoRoleBindingsConfigured(t *testing.T) {
 	scheme := runtime.NewScheme()
 	if err := rbacv1.AddToScheme(scheme); err != nil {
@@ -28,7 +33,7 @@ func TestCreateOrUpdateRoleBindingsSkipsWhenNoRoleBindingsConfigured(t *testing.
 		ObjectMeta: metav1.ObjectMeta{Name: tenantA},
 	}
 
-	namespace := "team-a"
+	namespace := tenantA
 	err := CreateOrUpdateRoleBinding(context.Background(), cl, mtc, namespace)
 	if err != nil {
 		t.Fatalf("CreateOrUpdateRoleBindings returned error: %v", err)
@@ -68,7 +73,7 @@ func TestCreateOrUpdateRoleBindingsCreatesPerNamespace(t *testing.T) {
 					Name: "viewers",
 					RoleRef: rbacv1.RoleRef{
 						APIGroup: rbacv1.GroupName,
-						Kind:     "ClusterRole",
+						Kind:     clusterRoleKind,
 						Name:     "view",
 					},
 					Subjects: []rbacv1.Subject{
@@ -79,7 +84,7 @@ func TestCreateOrUpdateRoleBindingsCreatesPerNamespace(t *testing.T) {
 					Name: "editors",
 					RoleRef: rbacv1.RoleRef{
 						APIGroup: rbacv1.GroupName,
-						Kind:     "ClusterRole",
+						Kind:     clusterRoleKind,
 						Name:     "edit",
 					},
 					Subjects: []rbacv1.Subject{
@@ -90,7 +95,7 @@ func TestCreateOrUpdateRoleBindingsCreatesPerNamespace(t *testing.T) {
 		},
 	}
 
-	namespace := "team-a"
+	namespace := tenantA
 	err := CreateOrUpdateRoleBinding(context.Background(), cl, mtc, namespace)
 	if err != nil {
 		t.Fatalf("CreateOrUpdateRoleBinding returned error: %v", err)
@@ -145,16 +150,16 @@ func TestCreateOrUpdateRoleBindingsUpdatesExistingRoleBinding(t *testing.T) {
 
 	existing := &rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "access",
-			Namespace: "team-c",
+			Name:      clusterRoleName,
+			Namespace: tenantC,
 			Labels: map[string]string{
-				"custom":          keepMe,
-				managedByLabelKey: "old-value",
+				labelCustomKey:    keepMe,
+				managedByLabelKey: labelOldValue,
 			},
 		},
 		RoleRef: rbacv1.RoleRef{
 			APIGroup: rbacv1.GroupName,
-			Kind:     "ClusterRole",
+			Kind:     clusterRoleKind,
 			Name:     "view",
 		},
 		Subjects: []rbacv1.Subject{
@@ -175,10 +180,10 @@ func TestCreateOrUpdateRoleBindingsUpdatesExistingRoleBinding(t *testing.T) {
 		Spec: tenantv1alpha1.MultiTenantConfigSpec{
 			RoleBindings: []tenantv1alpha1.RoleBindingSpec{
 				{
-					Name: "access",
+					Name: clusterRoleName,
 					RoleRef: rbacv1.RoleRef{
 						APIGroup: rbacv1.GroupName,
-						Kind:     "ClusterRole",
+						Kind:     clusterRoleKind,
 						Name:     "admin",
 					},
 					Subjects: []rbacv1.Subject{
@@ -190,14 +195,14 @@ func TestCreateOrUpdateRoleBindingsUpdatesExistingRoleBinding(t *testing.T) {
 		},
 	}
 
-	namespace := "team-c"
+	namespace := tenantC
 	err := CreateOrUpdateRoleBinding(context.Background(), cl, mtc, namespace)
 	if err != nil {
 		t.Fatalf("CreateOrUpdateRoleBindings returned error: %v", err)
 	}
 
 	updated := &rbacv1.RoleBinding{}
-	if err := cl.Get(context.Background(), client.ObjectKey{Namespace: namespace, Name: "access"}, updated); err != nil {
+	if err := cl.Get(context.Background(), client.ObjectKey{Namespace: namespace, Name: clusterRoleName}, updated); err != nil {
 		t.Fatalf("failed to get updated rolebinding: %v", err)
 	}
 

@@ -11,10 +11,19 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
+const (
+	resourceQuotaName = "tenant-resource-quota"
+)
+
 func CreateOrUpdateResourceQuota(ctx context.Context, cl client.Client, mtc *tenantv1alpha1.MultiTenantConfig, rqSpec *tenantconfigv1alpha1.NamespaceResourceQuota, namespace string) error {
+	if mtc.Spec.ResourceQuotaReference == "" || rqSpec == nil {
+		// if no spec is provided, skip creating/updating the ResourceQuota
+		return nil
+	}
+
 	resourceQuota := &corev1.ResourceQuota{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "tenant-resource-quota",
+			Name:      resourceQuotaName,
 			Namespace: namespace,
 		},
 	}

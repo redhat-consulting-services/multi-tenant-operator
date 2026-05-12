@@ -30,7 +30,7 @@ func TestCreateOrUpdateLimitRangesSkipsWhenReferenceNotSet(t *testing.T) {
 	}
 	limitRangeSpec := &tenantconfigv1alpha1.NamespaceLimitRange{}
 
-	namespace := "team-a"
+	namespace := tenantA
 	err := CreateOrUpdateLimitRange(context.Background(), cl, mtc, limitRangeSpec, namespace)
 	if err != nil {
 		t.Fatalf("CreateOrUpdateLimitRanges returned error: %v", err)
@@ -79,14 +79,14 @@ func TestCreateOrUpdateLimitRangesCreatesPerNamespace(t *testing.T) {
 		},
 	}
 
-	namespace := "team-a"
+	namespace := tenantA
 	err := CreateOrUpdateLimitRange(context.Background(), cl, mtc, limitRangeSpec, namespace)
 	if err != nil {
 		t.Fatalf("CreateOrUpdateLimitRanges returned error: %v", err)
 	}
 
 	lr := &corev1.LimitRange{}
-	if err := cl.Get(context.Background(), client.ObjectKey{Namespace: namespace, Name: "tenant-limit-range"}, lr); err != nil {
+	if err := cl.Get(context.Background(), client.ObjectKey{Namespace: namespace, Name: limitRangeName}, lr); err != nil {
 		t.Fatalf("failed to get limitrange for namespace %q: %v", namespace, err)
 	}
 
@@ -133,11 +133,11 @@ func TestCreateOrUpdateLimitRangesUpdatesExistingLimitRange(t *testing.T) {
 
 	existing := &corev1.LimitRange{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "tenant-limit-range",
-			Namespace: "team-c",
+			Name:      limitRangeName,
+			Namespace: tenantC,
 			Labels: map[string]string{
-				"custom":          keepMe,
-				managedByLabelKey: "old-value",
+				labelCustomKey:    keepMe,
+				managedByLabelKey: labelOldValue,
 			},
 		},
 		Spec: corev1.LimitRangeSpec{
@@ -169,14 +169,14 @@ func TestCreateOrUpdateLimitRangesUpdatesExistingLimitRange(t *testing.T) {
 		},
 	}
 
-	namespace := "team-c"
+	namespace := tenantC
 	err := CreateOrUpdateLimitRange(context.Background(), cl, mtc, limitRangeSpec, namespace)
 	if err != nil {
 		t.Fatalf("CreateOrUpdateLimitRanges returned error: %v", err)
 	}
 
 	updated := &corev1.LimitRange{}
-	if err := cl.Get(context.Background(), client.ObjectKey{Namespace: namespace, Name: "tenant-limit-range"}, updated); err != nil {
+	if err := cl.Get(context.Background(), client.ObjectKey{Namespace: namespace, Name: limitRangeName}, updated); err != nil {
 		t.Fatalf("failed to get updated limitrange: %v", err)
 	}
 

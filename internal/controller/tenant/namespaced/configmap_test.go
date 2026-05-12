@@ -37,14 +37,14 @@ func TestCreateOrUpdateConfigMapsCreatesPerNamespace(t *testing.T) {
 		},
 	}
 
-	namespace := "team-a"
+	namespace := tenantA
 	err := CreateOrUpdateConfigMap(context.Background(), cl, mtc, namespace)
 	if err != nil {
 		t.Fatalf("CreateOrUpdateConfigMaps returned error: %v", err)
 	}
 
 	cm := &corev1.ConfigMap{}
-	if err := cl.Get(context.Background(), client.ObjectKey{Namespace: namespace, Name: "user-ca-bundle"}, cm); err != nil {
+	if err := cl.Get(context.Background(), client.ObjectKey{Namespace: namespace, Name: userCABundleConfigMapName}, cm); err != nil {
 		t.Fatalf("failed to get configmap for namespace %q: %v", namespace, err)
 	}
 
@@ -81,11 +81,11 @@ func TestCreateOrUpdateConfigMapsUpdatesExistingConfigMap(t *testing.T) {
 
 	existing := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "user-ca-bundle",
-			Namespace: "team-c",
+			Name:      userCABundleConfigMapName,
+			Namespace: tenantC,
 			Labels: map[string]string{
-				"custom":             keepMe,
-				managedByLabelKey:    "old-value",
+				labelCustomKey:       keepMe,
+				managedByLabelKey:    labelOldValue,
 				"obsolete-managedby": "still-present",
 			},
 		},
@@ -106,18 +106,18 @@ func TestCreateOrUpdateConfigMapsUpdatesExistingConfigMap(t *testing.T) {
 		},
 	}
 
-	namespace := "team-c"
+	namespace := tenantC
 	err := CreateOrUpdateConfigMap(context.Background(), cl, mtc, namespace)
 	if err != nil {
 		t.Fatalf("CreateOrUpdateConfigMaps returned error: %v", err)
 	}
 
 	updated := &corev1.ConfigMap{}
-	if err := cl.Get(context.Background(), client.ObjectKey{Namespace: namespace, Name: "user-ca-bundle"}, updated); err != nil {
+	if err := cl.Get(context.Background(), client.ObjectKey{Namespace: namespace, Name: userCABundleConfigMapName}, updated); err != nil {
 		t.Fatalf("failed to get updated configmap: %v", err)
 	}
 
-	if got := updated.Labels["custom"]; got != keepMe {
+	if got := updated.Labels[labelCustomKey]; got != keepMe {
 		t.Fatalf("custom label should be preserved, got %q", got)
 	}
 	if got := updated.Labels[managedByLabelKey]; got != managedByLabelValue {

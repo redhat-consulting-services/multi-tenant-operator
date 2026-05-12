@@ -10,11 +10,15 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
+const (
+	userCABundleConfigMapName = "user-ca-bundle"
+)
+
 // CreateOrUpdateConfigMap creates or updates a ConfigMap with the specified name and namespace, and sets the appropriate labels and ownership reference to the MultiTenantConfig.
 func CreateOrUpdateConfigMap(ctx context.Context, cl client.Client, mtc *tenantv1alpha1.MultiTenantConfig, namespace string) error {
 	configMap := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "user-ca-bundle",
+			Name:      userCABundleConfigMapName,
 			Namespace: namespace,
 		},
 	}

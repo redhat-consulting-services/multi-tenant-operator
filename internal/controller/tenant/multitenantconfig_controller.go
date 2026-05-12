@@ -99,21 +99,17 @@ func (r *MultiTenantConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		}
 
 		// create or update limit range in namespace
-		if mtc.Spec.LimitRangeReference != "" {
-			err = namespaced.CreateOrUpdateLimitRange(ctx, r.Client, mtc, nlr, ns)
-			if err != nil {
-				log.Error(err, "Failed to create or update LimitRanges in tenant namespaces")
-				return ctrl.Result{}, err
-			}
+		err = namespaced.CreateOrUpdateLimitRange(ctx, r.Client, mtc, nlr, ns)
+		if err != nil {
+			log.Error(err, "Failed to create or update LimitRanges in tenant namespaces")
+			return ctrl.Result{}, err
 		}
 
 		// create or update resource quota in namespace
-		if mtc.Spec.ResourceQuotaReference != "" {
-			err = namespaced.CreateOrUpdateResourceQuota(ctx, r.Client, mtc, nrr, ns)
-			if err != nil {
-				log.Error(err, "Failed to create or update ResourceQuotas in tenant namespaces")
-				return ctrl.Result{}, err
-			}
+		err = namespaced.CreateOrUpdateResourceQuota(ctx, r.Client, mtc, nrr, ns)
+		if err != nil {
+			log.Error(err, "Failed to create or update ResourceQuotas in tenant namespaces")
+			return ctrl.Result{}, err
 		}
 
 		// create or update RoleBinding in tenant namespaces based on the MultiTenantConfig spec
