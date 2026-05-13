@@ -1,0 +1,38 @@
+# To get started with Dependabot version updates, you'll need to specify which
+# package ecosystems to update and where the package manifests are located.
+# Please see the documentation for all configuration options:
+# https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+
+version: 2
+
+multi-ecosystem-groups:
+  infrastructure:
+    schedule:
+      interval: "weekly"
+
+updates:
+  - package-ecosystem: "github-actions"
+    directory: ".github/workflows"
+    schedule:
+      interval: "weekly"
+    labels:
+      - dependencies
+      - dependency/actions
+
+  - package-ecosystem: "gomod"
+    directory: "/"
+    patterns:
+      - gomod
+    labels:
+      - dependencies
+      - dependency/go
+    multi-ecosystem-group: "infrastructure"
+
+  - package-ecosystem: "docker"
+    directory: "/"
+    patterns:
+      - docker
+    labels:
+      - dependencies
+      - dependency/container
+    multi-ecosystem-group: "infrastructure"
