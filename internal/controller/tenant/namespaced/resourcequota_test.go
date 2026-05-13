@@ -29,7 +29,8 @@ func TestCreateOrUpdateResourceQuotasSkipsWhenReferenceNotSet(t *testing.T) {
 	}
 	rqSpec := &tenantconfigv1alpha1.NamespaceResourceQuota{}
 
-	err := CreateOrUpdateResourceQuotas(context.Background(), cl, mtc, rqSpec, []string{"ns-a", "ns-b"})
+	namespace := "ns-a"
+	err := CreateOrUpdateResourceQuota(context.Background(), cl, mtc, rqSpec, namespace)
 	if err != nil {
 		t.Fatalf("CreateOrUpdateResourceQuotas returned error: %v", err)
 	}
@@ -77,44 +78,43 @@ func TestCreateOrUpdateResourceQuotasCreatesPerNamespace(t *testing.T) {
 		},
 	}
 
-	err := CreateOrUpdateResourceQuotas(context.Background(), cl, mtc, rqSpec, []string{"team-a", "team-b"})
+	namespace := tenantA
+	err := CreateOrUpdateResourceQuota(context.Background(), cl, mtc, rqSpec, namespace)
 	if err != nil {
 		t.Fatalf("CreateOrUpdateResourceQuotas returned error: %v", err)
 	}
 
-	for _, namespace := range []string{"team-a", "team-b"} {
-		rq := &corev1.ResourceQuota{}
-		if err := cl.Get(context.Background(), client.ObjectKey{Namespace: namespace, Name: "tenant-resource-quota"}, rq); err != nil {
-			t.Fatalf("failed to get resourcequota for namespace %q: %v", namespace, err)
-		}
+	rq := &corev1.ResourceQuota{}
+	if err := cl.Get(context.Background(), client.ObjectKey{Namespace: namespace, Name: resourceQuotaName}, rq); err != nil {
+		t.Fatalf("failed to get resourcequota for namespace %q: %v", namespace, err)
+	}
 
-		if got := rq.Labels[managedNamespacetenantNameLabelKey]; got != tenantB {
-			t.Fatalf("tenant-name label mismatch for namespace %q: got %q, want %q", namespace, got, tenantB)
-		}
-		if got := rq.Labels[managedByLabelKey]; got != managedByLabelValue {
-			t.Fatalf("managed-by label mismatch for namespace %q: got %q, want %q", namespace, got, managedByLabelValue)
-		}
-		if got := rq.Labels[multiTenantConfigNameLabelKey]; got != tenantB {
-			t.Fatalf("multitenantconfig label mismatch for namespace %q: got %q, want %q", namespace, got, tenantB)
-		}
+	if got := rq.Labels[managedNamespacetenantNameLabelKey]; got != tenantB {
+		t.Fatalf("tenant-name label mismatch for namespace %q: got %q, want %q", namespace, got, tenantB)
+	}
+	if got := rq.Labels[managedByLabelKey]; got != managedByLabelValue {
+		t.Fatalf("managed-by label mismatch for namespace %q: got %q, want %q", namespace, got, managedByLabelValue)
+	}
+	if got := rq.Labels[multiTenantConfigNameLabelKey]; got != tenantB {
+		t.Fatalf("multitenantconfig label mismatch for namespace %q: got %q, want %q", namespace, got, tenantB)
+	}
 
-		if got := rq.Spec.Hard.Cpu().String(); got != "2" {
-			t.Fatalf("hard cpu mismatch for namespace %q: got %q, want %q", namespace, got, "2")
-		}
-		if got := rq.Spec.Hard.Memory().String(); got != "4Gi" {
-			t.Fatalf("hard memory mismatch for namespace %q: got %q, want %q", namespace, got, "4Gi")
-		}
-		if got := rq.Spec.Hard.Pods().String(); got != "20" {
-			t.Fatalf("hard pods mismatch for namespace %q: got %q, want %q", namespace, got, "20")
-		}
+	if got := rq.Spec.Hard.Cpu().String(); got != "2" {
+		t.Fatalf("hard cpu mismatch for namespace %q: got %q, want %q", namespace, got, "2")
+	}
+	if got := rq.Spec.Hard.Memory().String(); got != "4Gi" {
+		t.Fatalf("hard memory mismatch for namespace %q: got %q, want %q", namespace, got, "4Gi")
+	}
+	if got := rq.Spec.Hard.Pods().String(); got != "20" {
+		t.Fatalf("hard pods mismatch for namespace %q: got %q, want %q", namespace, got, "20")
+	}
 
-		if len(rq.OwnerReferences) != 1 {
-			t.Fatalf("expected one owner reference for namespace %q, got %d", namespace, len(rq.OwnerReferences))
-		}
-		ownerRef := rq.OwnerReferences[0]
-		if ownerRef.Kind != mtcKind || ownerRef.Name != tenantB {
-			t.Fatalf("owner reference mismatch for namespace %q: got kind=%q name=%q", namespace, ownerRef.Kind, ownerRef.Name)
-		}
+	if len(rq.OwnerReferences) != 1 {
+		t.Fatalf("expected one owner reference for namespace %q, got %d", namespace, len(rq.OwnerReferences))
+	}
+	ownerRef := rq.OwnerReferences[0]
+	if ownerRef.Kind != mtcKind || ownerRef.Name != tenantB {
+		t.Fatalf("owner reference mismatch for namespace %q: got kind=%q name=%q", namespace, ownerRef.Kind, ownerRef.Name)
 	}
 }
 
@@ -129,11 +129,11 @@ func TestCreateOrUpdateResourceQuotasUpdatesExistingResourceQuota(t *testing.T) 
 
 	existing := &corev1.ResourceQuota{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "tenant-resource-quota",
-			Namespace: "team-c",
+			Name:      resourceQuotaName,
+			Namespace: tenantC,
 			Labels: map[string]string{
-				"custom":          keepMe,
-				managedByLabelKey: "old-value",
+				labelCustomKey:    keepMe,
+				managedByLabelKey: labelOldValue,
 			},
 		},
 		Spec: corev1.ResourceQuotaSpec{
@@ -166,13 +166,14 @@ func TestCreateOrUpdateResourceQuotasUpdatesExistingResourceQuota(t *testing.T) 
 		},
 	}
 
-	err := CreateOrUpdateResourceQuotas(context.Background(), cl, mtc, rqSpec, []string{"team-c"})
+	namespace := tenantC
+	err := CreateOrUpdateResourceQuota(context.Background(), cl, mtc, rqSpec, namespace)
 	if err != nil {
 		t.Fatalf("CreateOrUpdateResourceQuotas returned error: %v", err)
 	}
 
 	updated := &corev1.ResourceQuota{}
-	if err := cl.Get(context.Background(), client.ObjectKey{Namespace: "team-c", Name: "tenant-resource-quota"}, updated); err != nil {
+	if err := cl.Get(context.Background(), client.ObjectKey{Namespace: namespace, Name: resourceQuotaName}, updated); err != nil {
 		t.Fatalf("failed to get updated resourcequota: %v", err)
 	}
 

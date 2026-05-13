@@ -10,16 +10,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-func CreateOrUpdateNetworkPolicies(ctx context.Context, cl client.Client, mtc *tenantv1alpha1.MultiTenantConfig, namespaces []string) error {
-	for _, ns := range namespaces {
-		if err := createOrUpdateNetworkPolicy(ctx, cl, mtc, ns); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func createOrUpdateNetworkPolicy(ctx context.Context, cl client.Client, mtc *tenantv1alpha1.MultiTenantConfig, namespace string) error {
+func CreateOrUpdateNetworkPolicy(ctx context.Context, cl client.Client, mtc *tenantv1alpha1.MultiTenantConfig, namespace string) error {
 	networkPolicy := &netv1.NetworkPolicy{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "mtc-namespace-config",

@@ -10,19 +10,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-func CreateOrUpdateRoleBindings(ctx context.Context, cl client.Client, mtc *tenantv1alpha1.MultiTenantConfig, namespaces []string) error {
-	if len(mtc.Spec.RoleBindings) < 1 {
-		return nil
-	}
-	for _, ns := range namespaces {
-		if err := createOrUpdateRoleBinding(ctx, cl, mtc, ns); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func createOrUpdateRoleBinding(ctx context.Context, cl client.Client, mtc *tenantv1alpha1.MultiTenantConfig, namespace string) error {
+func CreateOrUpdateRoleBinding(ctx context.Context, cl client.Client, mtc *tenantv1alpha1.MultiTenantConfig, namespace string) error {
 	for _, rbSpec := range mtc.Spec.RoleBindings {
 		roleBinding := &rbacv1.RoleBinding{
 			ObjectMeta: metav1.ObjectMeta{

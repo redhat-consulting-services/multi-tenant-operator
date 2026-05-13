@@ -52,13 +52,6 @@ type MultiTenantConfigReconciler struct {
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the MultiTenantConfig object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
-//
-// For more details, check Reconcile and its Result here:
-// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.21.0/pkg/reconcile
 func (r *MultiTenantConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := logf.FromContext(ctx)
 
@@ -75,57 +68,63 @@ func (r *MultiTenantConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, err
 	}
 
-	// create or update ConfigMaps in tenant namespaces based on the MultiTenantConfig spec
-	err = namespaced.CreateOrUpdateConfigMaps(ctx, r.Client, mtc, namespaces)
-	if err != nil {
-		log.Error(err, "Failed to create or update ConfigMaps in tenant namespaces")
-		return ctrl.Result{}, err
-	}
-
+	// get namespace limit range spec if reference is set in MultiTenantConfig
+	nlr := &tenantconfigv1alpha1.NamespaceLimitRange{}
 	if mtc.Spec.LimitRangeReference != "" {
-		nlr := &tenantconfigv1alpha1.NamespaceLimitRange{}
 		err = r.Get(ctx, client.ObjectKey{Name: mtc.Spec.LimitRangeReference}, nlr)
 		if err != nil {
 			log.Error(err, "Failed to get NamespaceLimitRange")
 			return ctrl.Result{}, err
 		}
-
-		// create or update LimitRanges in tenant namespaces based on the MultiTenantConfig spec
-		err = namespaced.CreateOrUpdateLimitRanges(ctx, r.Client, mtc, nlr, namespaces)
-		if err != nil {
-			log.Error(err, "Failed to create or update LimitRanges in tenant namespaces")
-			return ctrl.Result{}, err
-		}
 	}
 
+	// get namespace resource quota spec if reference is set in MultiTenantConfig
+	nrr := &tenantconfigv1alpha1.NamespaceResourceQuota{}
 	if mtc.Spec.ResourceQuotaReference != "" {
-		nrr := &tenantconfigv1alpha1.NamespaceResourceQuota{}
 		err = r.Get(ctx, client.ObjectKey{Name: mtc.Spec.ResourceQuotaReference}, nrr)
 		if err != nil {
 			log.Error(err, "Failed to get NamespaceResourceQuota")
 			return ctrl.Result{}, err
 		}
+	}
 
-		// create or update ResourceQuotas in tenant namespaces based on the MultiTenantConfig spec
-		err = namespaced.CreateOrUpdateResourceQuotas(ctx, r.Client, mtc, nrr, namespaces)
+	for _, ns := range namespaces {
+		clog := log.WithValues("mtcName", mtc.GetName(), "namespace", ns)
+		clog.Info("Ensuring all components exist in namespace")
+
+		err = namespaced.CreateOrUpdateConfigMap(ctx, r.Client, mtc, ns)
+		if err != nil {
+			clog.Error(err, "Failed to create or update ConfigMap in namespace", "namespace", ns)
+			return ctrl.Result{}, err
+		}
+
+		// create or update limit range in namespace
+		err = namespaced.CreateOrUpdateLimitRange(ctx, r.Client, mtc, nlr, ns)
+		if err != nil {
+			log.Error(err, "Failed to create or update LimitRanges in tenant namespaces")
+			return ctrl.Result{}, err
+		}
+
+		// create or update resource quota in namespace
+		err = namespaced.CreateOrUpdateResourceQuota(ctx, r.Client, mtc, nrr, ns)
 		if err != nil {
 			log.Error(err, "Failed to create or update ResourceQuotas in tenant namespaces")
 			return ctrl.Result{}, err
 		}
-	}
 
-	// create or update RoleBindings in tenant namespaces based on the MultiTenantConfig spec
-	err = namespaced.CreateOrUpdateRoleBindings(ctx, r.Client, mtc, namespaces)
-	if err != nil {
-		log.Error(err, "Failed to create or update RoleBindings in tenant namespaces")
-		return ctrl.Result{}, err
-	}
+		// create or update RoleBinding in tenant namespaces based on the MultiTenantConfig spec
+		err = namespaced.CreateOrUpdateRoleBinding(ctx, r.Client, mtc, ns)
+		if err != nil {
+			log.Error(err, "Failed to create or update RoleBindings in tenant namespaces")
+			return ctrl.Result{}, err
+		}
 
-	// create or update NetworkPolicies in tenant namespaces based on the MultiTenantConfig spec
-	err = namespaced.CreateOrUpdateNetworkPolicies(ctx, r.Client, mtc, namespaces)
-	if err != nil {
-		log.Error(err, "Failed to create or update NetworkPolicies in tenant namespaces")
-		return ctrl.Result{}, err
+		// create or update NetworkPolicies in tenant namespaces based on the MultiTenantConfig spec
+		err = namespaced.CreateOrUpdateNetworkPolicy(ctx, r.Client, mtc, ns)
+		if err != nil {
+			log.Error(err, "Failed to create or update NetworkPolicies in tenant namespaces")
+			return ctrl.Result{}, err
+		}
 	}
 
 	// create or update Argo CD AppProject in the Argo CD instance namespace based on the MultiTenantConfig spec

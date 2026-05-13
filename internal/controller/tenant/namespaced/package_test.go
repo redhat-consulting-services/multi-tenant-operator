@@ -7,5 +7,9 @@ const (
 
 	keepMe = "keep-me"
 
+	labelCustomKey = "custom"
+	labelOldValue  = "old-value"
+
 	mtcKind = "MultiTenantConfig"
+	mtcName = "example-mtc"
 )
