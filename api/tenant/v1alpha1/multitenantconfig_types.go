@@ -93,6 +93,10 @@ type ConfigSpec struct {
 	// If not specified, it defaults to false.
 	// +kubebuilder:default:=false
 	EnableNetworkPolicyTenantInternalAllow bool `json:"enableNetworkPolicyTenantInternalAllow,omitempty"`
+	// EnableNetworkPolicyNamespaceLocalAllow determines whether the operator should create a NetworkPolicy that allows all traffic within the same namespace.
+	// If not specified, it defaults to false.
+	// +kubebuilder:default:=false
+	EnableNetworkPolicyNamespaceLocalAllow bool `json:"enableNetworkPolicyNamespaceLocalAllow,omitempty"`
 }
 
 type RoleBindingSpec struct {

@@ -109,7 +109,7 @@ func (r *MultiTenantConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		}
 
 		// create or update resource quota in namespace
-		err = namespaced.CreateOrUpdateResourceQuota(ctx, r.Client, mtc, nrr, ns)
+		err = namespaced.CreateOrUpdateResourceQuota(ctx, r.Client, mtc, nrr, ns.Name)
 		if err != nil {
 			log.Error(err, "Failed to create or update ResourceQuotas in tenant namespaces")
 			return ctrl.Result{}, err
@@ -123,9 +123,21 @@ func (r *MultiTenantConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		}
 
 		// create or update NetworkPolicies in tenant namespaces based on the MultiTenantConfig spec
-		err = namespaced.CreateOrUpdateNetworkPolicy(ctx, r.Client, mtc, ns)
+		err = namespaced.CreateOrUpdateNetworkPolicyTenantInternalAllow(ctx, r.Client, mtc, ns)
 		if err != nil {
-			log.Error(err, "Failed to create or update NetworkPolicies in tenant namespaces")
+			log.Error(err, "Failed to create or update tenant-internal NetworkPolicies in tenant namespaces")
+			return ctrl.Result{}, err
+		}
+
+		err = namespaced.CreateOrUpdateNetworkPolicyAllDeny(ctx, r.Client, mtc, ns)
+		if err != nil {
+			log.Error(err, "Failed to create or update all-deny NetworkPolicies in tenant namespaces")
+			return ctrl.Result{}, err
+		}
+
+		err = namespaced.CreateOrUpdateNetworkPolicyNamespaceLocalAllow(ctx, r.Client, mtc, ns)
+		if err != nil {
+			log.Error(err, "Failed to create or update namespace-local NetworkPolicies in tenant namespaces")
 			return ctrl.Result{}, err
 		}
 	}
