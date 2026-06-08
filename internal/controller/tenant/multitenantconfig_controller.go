@@ -89,17 +89,20 @@ func (r *MultiTenantConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 
 	for _, ns := range namespaces {
-		clog := log.WithValues("mtcName", mtc.GetName(), "namespace", ns)
+		mcs := ns.GetMergedConfigSpec(mtc.Spec.ConfigSpec)
+		ns.ConfigSpec = &mcs
+
+		clog := log.WithValues("mtcName", mtc.GetName(), "namespace", ns.Name)
 		clog.Info("Ensuring all components exist in namespace")
 
-		err = namespaced.CreateOrUpdateConfigMap(ctx, r.Client, mtc, ns)
+		err = namespaced.CreateOrUpdateConfigMap(ctx, r.Client, mtc, ns.Name)
 		if err != nil {
-			clog.Error(err, "Failed to create or update ConfigMap in namespace", "namespace", ns)
+			clog.Error(err, "Failed to create or update ConfigMap in namespace", "namespace", ns.Name)
 			return ctrl.Result{}, err
 		}
 
 		// create or update limit range in namespace
-		err = namespaced.CreateOrUpdateLimitRange(ctx, r.Client, mtc, nlr, ns)
+		err = namespaced.CreateOrUpdateLimitRange(ctx, r.Client, mtc, nlr, ns.Name)
 		if err != nil {
 			log.Error(err, "Failed to create or update LimitRanges in tenant namespaces")
 			return ctrl.Result{}, err
@@ -113,7 +116,7 @@ func (r *MultiTenantConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		}
 
 		// create or update RoleBinding in tenant namespaces based on the MultiTenantConfig spec
-		err = namespaced.CreateOrUpdateRoleBinding(ctx, r.Client, mtc, ns)
+		err = namespaced.CreateOrUpdateRoleBinding(ctx, r.Client, mtc, ns.Name)
 		if err != nil {
 			log.Error(err, "Failed to create or update RoleBindings in tenant namespaces")
 			return ctrl.Result{}, err
@@ -128,7 +131,7 @@ func (r *MultiTenantConfigReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 
 	// create or update Argo CD AppProject in the Argo CD instance namespace based on the MultiTenantConfig spec
-	err = namespaced.CreateOrUpdateArgoCDProject(ctx, r.Client, mtc, namespaces)
+	err = namespaced.CreateOrUpdateArgoCDProject(ctx, r.Client, mtc, mtc.Spec.GetNamespaceNames())
 	if err != nil {
 		log.Error(err, "Failed to create or update Argo CD AppProject")
 		return ctrl.Result{}, err
