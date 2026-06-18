@@ -1,6 +1,6 @@
 module github.com/redhat-consulting-services/multi-tenant-operator
 
-go 1.25.5
+go 1.26.4
 
 require (
 	github.com/argoproj/argo-cd/v3 v3.3.6
