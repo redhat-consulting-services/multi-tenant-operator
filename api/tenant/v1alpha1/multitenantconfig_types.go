@@ -48,6 +48,16 @@ type MultiTenantConfigSpec struct {
 	Namespaces []NamespaceSpec `json:"namespaces,omitempty"`
 }
 
+func (spec *MultiTenantConfigSpec) GetNamespaceNames() []string {
+	nsNames := []string{}
+	for _, ns := range spec.Namespaces {
+		if ns.Name != "" {
+			nsNames = append(nsNames, ns.Name)
+		}
+	}
+	return nsNames
+}
+
 type ConfigSpec struct {
 	// EnableAuditLogging indicates whether OVN audit logging should be enabled for tenant namespaces. If not specified, it defaults to false.
 	// When enabled, the operator will annotate the Namespace for each tenant with the necessary configuration to enable OVN audit logging.
@@ -83,6 +93,10 @@ type ConfigSpec struct {
 	// If not specified, it defaults to false.
 	// +kubebuilder:default:=false
 	EnableNetworkPolicyTenantInternalAllow bool `json:"enableNetworkPolicyTenantInternalAllow,omitempty"`
+	// EnableNetworkPolicyNamespaceLocalAllow determines whether the operator should create a NetworkPolicy that allows all traffic within the same namespace.
+	// If not specified, it defaults to false.
+	// +kubebuilder:default:=false
+	EnableNetworkPolicyNamespaceLocalAllow bool `json:"enableNetworkPolicyNamespaceLocalAllow,omitempty"`
 }
 
 type RoleBindingSpec struct {

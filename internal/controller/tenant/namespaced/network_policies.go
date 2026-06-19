@@ -10,11 +10,21 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-func CreateOrUpdateNetworkPolicy(ctx context.Context, cl client.Client, mtc *tenantv1alpha1.MultiTenantConfig, namespace string) error {
+const (
+	networkPolicyNameTenantInternal      = "mtc-tenant-internal-allow"
+	networkPolicyNameDenyAll             = "mtc-deny-all"
+	networkPolicyNameNamespaceLocalAllow = "mtc-namespace-local-allow"
+)
+
+func CreateOrUpdateNetworkPolicyTenantInternalAllow(ctx context.Context, cl client.Client, mtc *tenantv1alpha1.MultiTenantConfig, namespace tenantv1alpha1.NamespaceSpec) error {
+	if !namespace.ConfigSpec.EnableNetworkPolicyTenantInternalAllow {
+		return nil
+	}
+
 	networkPolicy := &netv1.NetworkPolicy{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "mtc-namespace-config",
-			Namespace: namespace,
+			Name:      networkPolicyNameTenantInternal,
+			Namespace: namespace.Name,
 		},
 		Spec: netv1.NetworkPolicySpec{
 			PodSelector: metav1.LabelSelector{},
@@ -22,10 +32,69 @@ func CreateOrUpdateNetworkPolicy(ctx context.Context, cl client.Client, mtc *ten
 	}
 
 	_, err := controllerutil.CreateOrUpdate(ctx, cl, networkPolicy, func() error {
-		if mtc.Spec.ConfigSpec.EnableNetworkPolicyTenantInternalAllow {
-			// allow ingress and egress traffic within the tenant namespaces
+		// allow ingress and egress traffic within the tenant namespaces
+		networkPolicy.Spec.PolicyTypes = []netv1.PolicyType{netv1.PolicyTypeIngress}
+		networkPolicy.Spec.Ingress = []netv1.NetworkPolicyIngressRule{
+			{
+				From: []netv1.NetworkPolicyPeer{
+					{
+						NamespaceSelector: &metav1.LabelSelector{
+							MatchLabels: map[string]string{
+								managedNamespacetenantNameLabelKey: mtc.Name,
+								managedByLabelKey:                  managedByLabelValue,
+							},
+						},
+					},
+				},
+			},
+		}
+		networkPolicy.Spec.PolicyTypes = append(networkPolicy.Spec.PolicyTypes, netv1.PolicyTypeEgress)
+		networkPolicy.Spec.Egress = []netv1.NetworkPolicyEgressRule{
+			{
+				To: []netv1.NetworkPolicyPeer{
+					{
+						NamespaceSelector: &metav1.LabelSelector{
+							MatchLabels: map[string]string{
+								managedNamespacetenantNameLabelKey: mtc.Name,
+								managedByLabelKey:                  managedByLabelValue,
+							},
+						},
+					},
+				},
+			},
+		}
+		if err := controllerutil.SetControllerReference(mtc, networkPolicy, cl.Scheme()); err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
 
-			networkPolicy.Spec.PolicyTypes = []netv1.PolicyType{netv1.PolicyTypeIngress}
+	return nil
+}
+
+func CreateOrUpdateNetworkPolicyAllDeny(ctx context.Context, cl client.Client, mtc *tenantv1alpha1.MultiTenantConfig, namespace tenantv1alpha1.NamespaceSpec) error {
+	if !namespace.ConfigSpec.EnableNetworkPolicyEgressDenyAll && !namespace.ConfigSpec.EnableNetworkPolicyIngressDenyAll {
+		return nil
+	}
+
+	networkPolicy := &netv1.NetworkPolicy{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      networkPolicyNameDenyAll,
+			Namespace: namespace.Name,
+		},
+		Spec: netv1.NetworkPolicySpec{
+			PodSelector: metav1.LabelSelector{},
+		},
+	}
+
+	_, err := controllerutil.CreateOrUpdate(ctx, cl, networkPolicy, func() error {
+		// allow ingress and egress traffic within the tenant namespaces
+		networkPolicy.Spec.PolicyTypes = []netv1.PolicyType{}
+		if namespace.ConfigSpec.EnableNetworkPolicyIngressDenyAll {
+			networkPolicy.Spec.PolicyTypes = append(networkPolicy.Spec.PolicyTypes, netv1.PolicyTypeIngress)
 			networkPolicy.Spec.Ingress = []netv1.NetworkPolicyIngressRule{
 				{
 					From: []netv1.NetworkPolicyPeer{
@@ -40,31 +109,79 @@ func CreateOrUpdateNetworkPolicy(ctx context.Context, cl client.Client, mtc *ten
 					},
 				},
 			}
+		}
+		if namespace.ConfigSpec.EnableNetworkPolicyEgressDenyAll {
 			networkPolicy.Spec.PolicyTypes = append(networkPolicy.Spec.PolicyTypes, netv1.PolicyTypeEgress)
 			networkPolicy.Spec.Egress = []netv1.NetworkPolicyEgressRule{
 				{
 					To: []netv1.NetworkPolicyPeer{
 						{
-							NamespaceSelector: &metav1.LabelSelector{
-								MatchLabels: map[string]string{
-									managedNamespacetenantNameLabelKey: mtc.Name,
-									managedByLabelKey:                  managedByLabelValue,
-								},
+							NamespaceSelector: &metav1.LabelSelector{},
+						},
+						{
+							IPBlock: &netv1.IPBlock{
+								CIDR: "0.0.0.0/0",
+							},
+						},
+						{
+							IPBlock: &netv1.IPBlock{
+								CIDR: "::/0",
 							},
 						},
 					},
 				},
 			}
-		} else {
-			if mtc.Spec.ConfigSpec.EnableNetworkPolicyIngressDenyAll {
-				networkPolicy.Spec.PolicyTypes = []netv1.PolicyType{netv1.PolicyTypeIngress}
-				networkPolicy.Spec.Ingress = []netv1.NetworkPolicyIngressRule{}
-			}
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
 
-			if mtc.Spec.ConfigSpec.EnableNetworkPolicyEgressDenyAll {
-				networkPolicy.Spec.PolicyTypes = append(networkPolicy.Spec.PolicyTypes, netv1.PolicyTypeEgress)
-				networkPolicy.Spec.Egress = []netv1.NetworkPolicyEgressRule{}
-			}
+	if err := controllerutil.SetControllerReference(mtc, networkPolicy, cl.Scheme()); err != nil {
+		return err
+	}
+	return nil
+}
+
+func CreateOrUpdateNetworkPolicyNamespaceLocalAllow(ctx context.Context, cl client.Client, mtc *tenantv1alpha1.MultiTenantConfig, namespace tenantv1alpha1.NamespaceSpec) error {
+	if !namespace.ConfigSpec.EnableNetworkPolicyNamespaceLocalAllow {
+		return nil
+	}
+
+	networkPolicy := &netv1.NetworkPolicy{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      networkPolicyNameNamespaceLocalAllow,
+			Namespace: namespace.Name,
+		},
+		Spec: netv1.NetworkPolicySpec{
+			PodSelector: metav1.LabelSelector{},
+		},
+	}
+
+	_, err := controllerutil.CreateOrUpdate(ctx, cl, networkPolicy, func() error {
+		// allow ingress and egress traffic within the tenant namespaces (namespace-local)
+		networkPolicy.Spec.PolicyTypes = []netv1.PolicyType{netv1.PolicyTypeIngress, netv1.PolicyTypeEgress}
+		networkPolicy.Spec.Ingress = []netv1.NetworkPolicyIngressRule{
+			{
+				From: []netv1.NetworkPolicyPeer{
+					{
+						PodSelector: &metav1.LabelSelector{},
+					},
+				},
+			},
+		}
+		networkPolicy.Spec.Egress = []netv1.NetworkPolicyEgressRule{
+			{
+				To: []netv1.NetworkPolicyPeer{
+					{
+						PodSelector: &metav1.LabelSelector{},
+					},
+				},
+			},
+		}
+		if err := controllerutil.SetControllerReference(mtc, networkPolicy, cl.Scheme()); err != nil {
+			return err
 		}
 		return nil
 	})

@@ -12,8 +12,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-func CreateOrUpdateNamespaces(ctx context.Context, cl client.Client, mtc *tenantv1alpha1.MultiTenantConfig) ([]string, error) {
-	var namespaceNames []string
+func CreateOrUpdateNamespaces(ctx context.Context, cl client.Client, mtc *tenantv1alpha1.MultiTenantConfig) ([]tenantv1alpha1.NamespaceSpec, error) {
+	namespaceSpecs := []tenantv1alpha1.NamespaceSpec{}
 	for _, ns := range mtc.Spec.Namespaces {
 		if ns.Name == "" {
 			continue
@@ -23,7 +23,7 @@ func CreateOrUpdateNamespaces(ctx context.Context, cl client.Client, mtc *tenant
 		namespace := &corev1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{Name: namespaceName},
 		}
-		namespaceNames = append(namespaceNames, namespaceName)
+		namespaceSpecs = append(namespaceSpecs, ns)
 
 		_, err := controllerutil.CreateOrUpdate(ctx, cl, namespace, func() error {
 			// labels
@@ -68,5 +68,5 @@ func CreateOrUpdateNamespaces(ctx context.Context, cl client.Client, mtc *tenant
 			return nil, fmt.Errorf("failed to create or update namespace %q: %w", namespaceName, err)
 		}
 	}
-	return namespaceNames, nil
+	return namespaceSpecs, nil
 }
