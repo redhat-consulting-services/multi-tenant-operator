@@ -214,7 +214,3 @@ type MultiTenantConfigList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []MultiTenantConfig `json:"items"`
 }
-
-func init() {
-	SchemeBuilder.Register(&MultiTenantConfig{}, &MultiTenantConfigList{})
-}

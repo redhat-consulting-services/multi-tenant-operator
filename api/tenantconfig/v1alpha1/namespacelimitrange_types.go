@@ -56,7 +56,3 @@ type NamespaceLimitRangeList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []NamespaceLimitRange `json:"items"`
 }
-
-func init() {
-	SchemeBuilder.Register(&NamespaceLimitRange{}, &NamespaceLimitRangeList{})
-}
