@@ -2,7 +2,7 @@
 
 [![Docker Repository on Quay](https://quay.io/repository/redhat-consulting-services/multi-tenant-operator/status "Docker Repository on Quay")](https://quay.io/repository/redhat-consulting-services/multi-tenant-operator)
 
-multi-tenant-operator is a Kubernetes operator that automates the provisioning and lifecycle management of tenant namespaces on OpenShift clusters. It enforces consistent resource quotas, limit ranges, RBAC role bindings, network policies, and Argo CD project configurations across all namespaces belonging to a tenant, using a single `MultiTenantConfig` custom resource.
+multi-tenant-operator is a Kubernetes operator that automates the provisioning and lifecycle management of tenant namespaces on OpenShift clusters. It enforces consistent resource quotas, limit ranges, RBAC role bindings, network policies, and ArgoCD project configurations across all namespaces belonging to a tenant, using a single `MultiTenantConfig` custom resource.
 
 ## Description
 
@@ -18,25 +18,7 @@ When a `MultiTenantConfig` is created or updated, the operator reconciles the de
 
 ## Getting Started
 
-### Prerequisites
-
-- go version v1.24.0+
-- docker version 17.03+.
-- kubectl version v1.11.3+.
-- Access to a Kubernetes v1.11.3+ cluster.
-
-### To Deploy on the cluster
-
-#### Build and Push the Image
-
-> **NOTE**: Do not build and push the image manually. To release a new version, create a git tag and push it to GitHub. The CI pipeline will automatically build the new image and push it to [quay.io](https://quay.io/repository/redhat-consulting-services/multi-tenant-operator).
-
-```sh
-git tag v<version>
-git push origin v<version>
-```
-
-#### Deploy the Operator via OLM (recommended)
+### Installation
 
 The operator is distributed through the [rh-consulting-catalog](https://quay.io/repository/redhat-consulting-services/rh-consulting-catalog) operator catalog. To install it on a cluster with the [Operator Lifecycle Manager (OLM)](https://olm.operatorframework.io/) installed, follow the steps below.
 
@@ -86,95 +68,123 @@ kubectl apply -f subscription.yaml
 
 Once the `Subscription` is created, OLM will automatically install the operator in the `multi-tenant-operator` namespace.
 
-#### Development environment
+### Usage
 
-**Install the CRDs into the cluster:**
+nrq-small.yaml:
 
-```sh
-make install
+```yaml
+apiVersion: tenantconfig.openshift.io/v1alpha1
+kind: NamespaceResourceQuota
+metadata:
+  name: small
+spec:
+  hard:
+    cpu: "2"
+    memory: "8Gi"
+    pods: "20"
+    configmaps: "10"
+    persistentvolumeclaims: "10"
+    replicationcontrollers: "5"
+    secrets: "20"
+    services: "20"
+    services.loadbalancers: "0"
 ```
 
-**Deploy the Manager to the cluster with the image specified by `IMG`:**
+nlr-small.yaml:
 
-```sh
-make deploy IMG=<some-registry>/multi-tenant-operator:tag
+```yaml
+apiVersion: tenantconfig.openshift.io/v1alpha1
+kind: NamespaceLimitRange
+metadata:
+  name: small
+spec:
+  limits:
+    - default:
+        cpu: 500m
+        memory: 512Mi
+      defaultRequest:
+        cpu: 10m
+        memory: 32Mi
+      max:
+        cpu: "2"
+        memory: "4Gi"
+      min:
+        cpu: 10m
+        memory: 32Mi
+      type: Container
 ```
 
-> **NOTE**: If you encounter RBAC errors, you may need to grant yourself cluster-admin
-privileges or be logged in as admin.
+mto.yaml:
 
-**Create instances of your solution**
-You can apply the samples (examples) from the config/sample:
-
-```sh
-kubectl apply -k config/samples/
+```yaml
+apiVersion: tenant.openshift.io/v1alpha1
+kind: MultiTenantConfig
+metadata:
+  name: mto-light
+  labels:
+    access.network.openshift.io/default: ""
+spec:
+  resourceQuotaReference: small
+  limitRangeReference: small
+  argocd:
+    instanceName: openshift-gitops
+    instanceNamespace: openshift-gitops
+    project:
+      enabled: true
+      name: mto-light
+      destinations:
+        - server: https://kubernetes.default.svc
+          namespace: mto-light-front
+        - server: https://kubernetes.default.svc
+          namespace: mto-light-back
+        - server: https://kubernetes.default.svc
+          namespace: mto-light-center
+        - server: https://kubernetes.default.svc
+          namespace: mto-light-shared
+      sourceRepos:
+        - https://github.com/leonsteinhaeuser/openshift-cluster-config.git
+      clusterResourceBlacklist:
+        - group: '*'
+          kind: '*'
+      namespaceResourceBlacklist:
+        - group: networking.k8s.io
+          kind: NetworkPolicy
+  configSpec:
+    enableAuditLogging: true
+    enableUserWorkloadMonitoring: true
+    enableCertificateConfigMapCreation: true
+    enableArgoCDControllerManagement: true
+    enableNamePrefix: true
+    enableNetworkPolicyTenantInternalAllow: false
+  namespaces:
+    - name: front
+    - name: center
+    - name: back
+    - name: shared
+      configSpec:
+        enableNetworkPolicyTenantInternalAllow: true
 ```
 
->**NOTE**: Ensure that the samples has default values to test it out.
+Generated namespaces:
 
-### To Uninstall
-
-**Delete the instances (CRs) from the cluster:**
-
-```sh
-kubectl delete -k config/samples/
+```yaml
+mto-light-back
+mto-light-center
+mto-light-front
+shared
 ```
 
-**Delete the APIs(CRDs) from the cluster:**
+Namespace labels:
 
-```sh
-make uninstall
+```yaml
+access.network.openshift.io/default: ""
+tenant.openshift.io/multi-tenant-config: mto-light
+tenant.openshift.io/name: mto-light
 ```
 
-**UnDeploy the controller from the cluster:**
+## Development
 
-```sh
-make undeploy
-```
-
-## Project Distribution
-
-Following the options to release and provide this solution to the users.
-
-### By providing a bundle with all YAML files
-
-1. Build the installer for the image built and published in the registry:
-
-```sh
-make build-installer IMG=<some-registry>/multi-tenant-operator:tag
-```
-
-**NOTE:** The makefile target mentioned above generates an 'install.yaml'
-file in the dist directory. This file contains all the resources built
-with Kustomize, which are necessary to install this project without its
-dependencies.
-
-2. Using the installer
-
-Users can just run 'kubectl apply -f <URL for YAML BUNDLE>' to install
-the project, i.e.:
-
-```sh
-kubectl apply -f https://raw.githubusercontent.com/<org>/multi-tenant-operator/<tag or branch>/dist/install.yaml
-```
-
-### By providing a Helm Chart
-
-1. Build the chart using the optional helm plugin
-
-```sh
-operator-sdk edit --plugins=helm/v1-alpha
-```
-
-2. See that a chart was generated under 'dist/chart', and users
-can obtain this solution from there.
-
-**NOTE:** If you change the project, you need to update the Helm Chart
-using the same command above to sync the latest changes. Furthermore,
-if you create webhooks, you need to use the above command with
-the '--force' flag and manually ensure that any custom configuration
-previously added to 'dist/chart/values.yaml' or 'dist/chart/manager/manager.yaml'
-is manually re-applied afterwards.
+For development instructions, see [docs/dev.md](docs/dev.md).
 
 ## Contributing
 
