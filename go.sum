@@ -37,8 +37,8 @@ github.com/antlr4-go/antlr/v4 v4.13.1 h1:SqQKkuVZ+zWkMMNkjy5FZe5mr5WURWnlpmOuzYW
 github.com/antlr4-go/antlr/v4 v4.13.1/go.mod h1:GKmUxMtwp6ZgGwZSva4eWPC5mS6vUAmOABFgjdkM7Nw=
 github.com/argoproj/argo-cd/gitops-engine v0.0.0-20260624190319-6e0d8c66625e h1:hdwtzsAArXqhfVlDcHUZdZWrB2lYJCNl5lVUAGr3G6M=
 github.com/argoproj/argo-cd/gitops-engine v0.0.0-20260624190319-6e0d8c66625e/go.mod h1:82V3IWWHhEYbog1362JW9GqNgsbXU1jH/FBWSH2m7L8=
-github.com/argoproj/argo-cd/v3 v3.4.5 h1:LJwNG3Ug/4IDtIneuW+SidzhT3EX3Y+RK+AMa4yleYw=
-github.com/argoproj/argo-cd/v3 v3.4.5/go.mod h1:JejzzX7cGrqMiwg9qTqPd1psR8Ma1UWnOZfwYwz9how=
+github.com/argoproj/argo-cd/v3 v3.4.6 h1:wm3Skm0r+ho2ySqIVYsH5ievTv7KGEHfk6XtgJcXmo4=
+github.com/argoproj/argo-cd/v3 v3.4.6/go.mod h1:JejzzX7cGrqMiwg9qTqPd1psR8Ma1UWnOZfwYwz9how=
 github.com/argoproj/pkg v0.13.7-0.20250305113207-cbc37dc61de5 h1:YBoLSjpoaJXaXAldVvBRKJuOPvIXz9UOv6S96gMJM/Q=
 github.com/argoproj/pkg v0.13.7-0.20250305113207-cbc37dc61de5/go.mod h1:ebVOzFJphdN1p6EG2mIMECv/3Rk/almSaxIYuFAmsSw=
 github.com/argoproj/pkg/v2 v2.0.1 h1:O/gCETzB/3+/hyFL/7d/VM/6pSOIRWIiBOTb2xqAHvc=
